@@ -1,0 +1,71 @@
+.overlay-stage { position: fixed; top: 0; left: 0; width: 1920px; height: 1080px; animation: reel-in 0.3s linear both; }
+@keyframes reel-in {
+  0% { opacity: 0; }
+  30% { opacity: 0.65; }
+  45% { opacity: 0.3; }
+  70% { opacity: 0.9; }
+  85% { opacity: 0.75; }
+  100% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .overlay-stage { animation: none; } }
+
+.ov-badge {
+  position: absolute; top: 48px; right: 56px; display: flex; align-items: center; gap: 16px;
+  padding: 12px 22px; background: var(--bg); border: 1px solid var(--gold-dark);
+}
+.ov-badge .logo { font-size: 30px; }
+.ov-badge .sep { width: 1px; height: 28px; background: var(--line); }
+.ov-badge .label { font-size: 26px; color: var(--text); }
+
+.ov-card {
+  position: absolute; left: 56px; bottom: 56px; width: 1000px; padding: 8px; overflow: hidden;
+  background: var(--bg); border: 2px solid var(--gold); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.ov-card-inner { border: 1px solid var(--line-2); padding: 24px; display: flex; gap: 32px; }
+.ov-card .poster { width: 200px; flex: none; align-self: flex-start; }
+.ov-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.ov-kicker {
+  align-self: flex-start; padding: 6px 14px; background: var(--gold); color: var(--bg);
+  font-family: var(--font-label); font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.ov-title {
+  margin: 0; font-family: var(--font-display); font-weight: 400; line-height: 1.02; color: var(--text);
+  text-shadow: 2px 1px 0 rgba(122, 42, 34, 0.4);
+}
+.ov-card .ov-title { font-size: 64px; }
+.ov-card .ov-title--long { font-size: 46px; }
+.ov-rule { height: 1px; background: var(--line-2); }
+.ov-credits { display: flex; flex-direction: column; gap: 6px; font-size: 26px; line-height: 1.35; }
+.ov-credits .label { font-size: 22px; color: var(--gold); margin-right: 10px; }
+.ov-muted { color: var(--text-2); }
+
+.ov-full { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.ov-full .perforations { padding: 9px 0; gap: 14px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.ov-full .perforations span { width: 16px; height: 10px; }
+.ov-full-body { flex: 1; min-height: 0; display: flex; gap: 80px; align-items: center; padding: 64px 96px 48px; }
+.ov-full-poster { width: 560px; height: 840px; flex: none; padding: 10px; border: 2px solid var(--gold); }
+.ov-full-poster .poster { width: 100%; height: 100%; aspect-ratio: auto; }
+.ov-full-poster .poster-title { font-size: 56px; }
+.ov-full-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.ov-full-meta { display: flex; align-items: center; gap: 20px; }
+.ov-full-meta .label { font-size: 28px; color: var(--text-2); }
+.ov-full .ov-kicker { font-size: 28px; padding: 8px 18px; }
+.ov-full .ov-title { font-size: 120px; line-height: 0.98; }
+.ov-full .ov-title--long { font-size: 84px; }
+.ov-ornament { display: flex; align-items: center; gap: 16px; color: var(--gold); }
+.ov-ornament span { flex: 1; height: 1px; background: var(--line-2); }
+.ov-full-credits { display: grid; grid-template-columns: 240px minmax(0, 1fr); row-gap: 14px; column-gap: 24px; font-size: 34px; line-height: 1.3; }
+.ov-full-credits .label { font-size: 28px; color: var(--gold); padding-top: 6px; }
+.ov-synopsis {
+  margin: 8px 0 0; max-width: 1000px; font-size: 28px; line-height: 1.5; font-style: italic; color: var(--text-2);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ov-full-footer {
+  height: 72px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 96px;
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.ov-full-footer .logo { font-size: 32px; }
+.ov-full-footer .label { font-size: 26px; color: var(--text-2); }
+
+.trailer { position: absolute; inset: 0; background: #000; }
+.trailer iframe { width: 100%; height: 100%; border: 0; }
