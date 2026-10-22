@@ -37,9 +37,9 @@
 .private-notes p { margin: 6px 0 0; white-space: pre-wrap; line-height: 1.5; }
 
 .controls { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-.preview { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--camera); border: 1px solid var(--line); }
+.preview { position: relative; aspect-ratio: 1250 / 725; overflow: hidden; background: var(--camera); border: 1px solid var(--line); }
 .preview iframe {
-  position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0;
+  position: absolute; top: 0; left: 0; border: 0;
   transform-origin: 0 0; pointer-events: none;
 }
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
