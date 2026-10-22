@@ -1,0 +1,73 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_SHORTCUTS } from '../../shared/shortcuts';
+import { ShortcutsDialog } from './ShortcutsDialog';
+
+beforeAll(() => {
+  // jsdom n'implémente pas l'ouverture modale des <dialog>.
+  HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  HTMLDialogElement.prototype.close = function () { this.open = false; };
+});
+
+afterEach(cleanup);
+
+function setup() {
+  const onSave = vi.fn(async () => null as string | null);
+  const onClose = vi.fn();
+  render(<ShortcutsDialog open map={DEFAULT_SHORTCUTS} onSave={onSave} onClose={onClose} />);
+  const modify = (i: number) => fireEvent.click(screen.getAllByRole('button', { name: 'Modifier' })[i]!);
+  return { onSave, onClose, modify };
+}
+
+describe('fenêtre des raccourcis', () => {
+  it('capture une nouvelle touche et l’enregistre', async () => {
+    const { onSave, modify } = setup();
+    modify(0);
+    expect(screen.getByText(/Appuie sur une touche/)).toBeTruthy();
+    fireEvent.keyDown(window, { code: 'KeyN', key: 'n' });
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ ...DEFAULT_SHORTCUTS, next: { code: 'KeyN', label: 'N' } }));
+  });
+
+  it('propose d’échanger une touche déjà prise', async () => {
+    const { onSave, modify } = setup();
+    modify(0);
+    fireEvent.keyDown(window, { code: 'Digit1', key: '&' });
+    expect(screen.getByRole('alert').textContent).toMatch(/La touche « & » sert déjà à Fiche/);
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Échanger' }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({ ...DEFAULT_SHORTCUTS, next: DEFAULT_SHORTCUTS.full, full: DEFAULT_SHORTCUTS.next }),
+    );
+  });
+
+  it('annule la capture avec Échap sans fermer la fenêtre', () => {
+    const { onSave, onClose, modify } = setup();
+    modify(1);
+    const dialog = document.querySelector('dialog')!;
+    const cancel = new Event('cancel', { cancelable: true });
+    dialog.dispatchEvent(cancel);
+    expect(cancel.defaultPrevented).toBe(true);
+    fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' });
+    expect(screen.queryByText(/Appuie sur une touche/)).toBeNull();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('refuse une touche interdite et reste en capture', () => {
+    const { onSave, modify } = setup();
+    modify(0);
+    fireEvent.keyDown(window, { code: 'Tab', key: 'Tab' });
+    expect(screen.getByRole('alert').textContent).toMatch(/Tab/);
+    expect(screen.getByText(/Appuie sur une touche/)).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('remet les touches par défaut et affiche une erreur d’enregistrement', async () => {
+    const { onSave } = setup();
+    onSave.mockResolvedValueOnce('Le serveur Avant-Première ne répond pas. Est-il bien lancé ?');
+    fireEvent.click(screen.getByRole('button', { name: 'Touches par défaut' }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(DEFAULT_SHORTCUTS));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/ne répond pas/);
+  });
+});

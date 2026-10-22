@@ -10,6 +10,7 @@ import type {
   Releases,
   ReleaseSummary,
 } from '../shared/types';
+import type { ShortcutMap } from '../shared/shortcuts';
 
 export class ApiError extends Error {
   constructor(
@@ -59,6 +60,8 @@ export const api = {
   createManual: (input: ManualFilmInput) => call<Film>('POST', '/api/films/manual', input),
   live: () => call<LiveSnapshot>('GET', '/api/live'),
   liveAction: (action: LiveAction) => call<LiveSnapshot>('POST', '/api/live', action),
+  shortcuts: () => call<ShortcutMap>('GET', '/api/settings/shortcuts'),
+  saveShortcuts: (map: ShortcutMap) => call<ShortcutMap>('PUT', '/api/settings/shortcuts', map),
 };
 
 export function errorMessage(e: unknown): string {

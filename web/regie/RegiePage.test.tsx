@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_SHORTCUTS } from '../../shared/shortcuts';
 import { RegiePage } from './RegiePage';
 import { api } from '../api';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
 
 vi.mock('../api', () => ({
-  api: { live: vi.fn(), today: vi.fn(), liveAction: vi.fn() },
+  api: { live: vi.fn(), today: vi.fn(), liveAction: vi.fn(), shortcuts: vi.fn(), saveShortcuts: vi.fn() },
   errorMessage: (e: unknown) => String(e),
 }));
 vi.mock('../live/useLiveSnapshot', () => ({ useLiveSnapshot: vi.fn() }));
@@ -25,6 +26,7 @@ describe('RegiePage au chargement', () => {
     vi.clearAllMocks();
     vi.mocked(useLiveSnapshot).mockReturnValue({ snapshot: null, connected: true } as never);
     vi.mocked(api.liveAction).mockResolvedValue(snap(null, 0) as never);
+    vi.mocked(api.shortcuts).mockResolvedValue(DEFAULT_SHORTCUTS);
     window.history.replaceState(null, '', '/regie');
   });
   afterEach(() => window.history.replaceState(null, '', '/'));
@@ -51,5 +53,12 @@ describe('RegiePage au chargement', () => {
     render(<RegiePage />);
     await waitFor(() => expect(api.liveAction).toHaveBeenCalledWith({ type: 'start', airDate: '2026-10-20' }));
     expect(api.live).not.toHaveBeenCalled();
+  });
+
+  it('prévient quand les raccourcis personnalisés ne se chargent pas', async () => {
+    vi.mocked(api.live).mockResolvedValue(snap('2026-10-13', 2) as never);
+    vi.mocked(api.shortcuts).mockRejectedValue(new Error('réseau'));
+    render(<RegiePage />);
+    expect(await screen.findByText(/touches par défaut utilisées/)).toBeTruthy();
   });
 });

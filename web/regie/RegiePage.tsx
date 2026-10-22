@@ -8,15 +8,17 @@ import { ChevronLeft, ChevronRight } from '../components/icons';
 import { Poster } from '../components/Poster';
 import { formatRuntime, readDateParam, releaseKicker, yearOf } from '../format';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
+import { DEFAULT_SHORTCUTS, type ShortcutMap } from '../../shared/shortcuts';
 import { OverlayPreview } from './OverlayPreview';
 import { PrivateNotes } from './PrivateNotes';
+import { ShortcutsDialog } from './ShortcutsDialog';
 import { useShortcuts } from './shortcuts';
 import './regie.css';
 
-const MODES: { mode: DisplayMode; label: string; key: string }[] = [
-  { mode: 'full', label: 'Fiche', key: '1' },
-  { mode: 'trailer', label: 'Bande-annonce', key: '2' },
-  { mode: 'off', label: 'Masquer', key: '3' },
+const MODES: { mode: DisplayMode; label: string }[] = [
+  { mode: 'full', label: 'Fiche' },
+  { mode: 'trailer', label: 'Bande-annonce' },
+  { mode: 'off', label: 'Masquer' },
 ];
 
 export function RegiePage() {
@@ -63,7 +65,35 @@ export function RegiePage() {
     };
   }, [airDate, send]);
 
-  useShortcuts(send);
+  const [shortcuts, setShortcuts] = useState<ShortcutMap>(DEFAULT_SHORTCUTS);
+  const [shortcutsFailed, setShortcutsFailed] = useState(false);
+  const [editingKeys, setEditingKeys] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.shortcuts().then(
+      (m) => {
+        if (!cancelled) setShortcuts(m);
+      },
+      () => {
+        if (!cancelled) setShortcutsFailed(true);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const saveShortcuts = useCallback(async (next: ShortcutMap): Promise<string | null> => {
+    try {
+      setShortcuts(await api.saveShortcuts(next));
+      return null;
+    } catch (e) {
+      return errorMessage(e);
+    }
+  }, []);
+
+  useShortcuts(shortcuts, send, !editingKeys);
 
   const obsOk = snapshot?.overlayConnected ?? false;
 
@@ -75,6 +105,9 @@ export function RegiePage() {
         {!connected && <span className="status-dot is-bad">Serveur injoignable</span>}
       </AppHeader>
       {error && <div className="banner" role="alert">{error}</div>}
+      {shortcutsFailed && (
+        <div className="banner" role="alert">Raccourcis personnalisés indisponibles : touches par défaut utilisées.</div>
+      )}
       <main className="regie-main">
         {!snapshot ? (
           <p className="hint">Connexion au serveur…</p>
@@ -83,15 +116,23 @@ export function RegiePage() {
             Aucun film au programme pour cette émission. <a href={`/?date=${airDate ?? ''}`}>Prépare-la d’abord</a>.
           </p>
         ) : (
-          <LiveBoard snapshot={snapshot} send={send} />
+          <LiveBoard snapshot={snapshot} send={send} shortcuts={shortcuts} onEditShortcuts={() => setEditingKeys(true)} />
         )}
       </main>
+      <ShortcutsDialog open={editingKeys} map={shortcuts} onClose={() => setEditingKeys(false)} onSave={saveShortcuts} />
       <Grain variant="page" />
     </>
   );
 }
 
-function LiveBoard({ snapshot, send }: { snapshot: LiveSnapshot; send: (a: LiveAction) => void }) {
+interface BoardProps {
+  snapshot: LiveSnapshot;
+  send: (a: LiveAction) => void;
+  shortcuts: ShortcutMap;
+  onEditShortcuts(): void;
+}
+
+function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
   const { state, total, rundown, current } = snapshot;
   const hasTrailer = current !== null && effectiveTrailerKey(current) !== null;
 
@@ -141,7 +182,7 @@ function LiveBoard({ snapshot, send }: { snapshot: LiveSnapshot; send: (a: LiveA
               <button key={m.mode} type="button" className="btn" aria-pressed={state.mode === m.mode}
                 disabled={m.mode === 'trailer' && !hasTrailer}
                 onClick={() => send({ type: 'setMode', mode: m.mode })}>
-                {m.label} <kbd>{m.key}</kbd>
+                {m.label} <kbd>{shortcuts[m.mode].label}</kbd>
               </button>
             ))}
           </div>
@@ -156,9 +197,13 @@ function LiveBoard({ snapshot, send }: { snapshot: LiveSnapshot; send: (a: LiveA
               Film suivant <ChevronRight />
             </button>
           </div>
-          <p className="hint">
-            Raccourcis : <kbd>←</kbd> <kbd>→</kbd> pour changer de film, <kbd>1</kbd> à <kbd>3</kbd> pour l’affichage.
-          </p>
+          <div className="shortcut-hint">
+            <p className="hint">
+              Raccourcis : <kbd>{shortcuts.prev.label}</kbd> <kbd>{shortcuts.next.label}</kbd> pour changer de film,{' '}
+              <kbd>{shortcuts.full.label}</kbd> <kbd>{shortcuts.trailer.label}</kbd> <kbd>{shortcuts.off.label}</kbd> pour l’affichage.
+            </p>
+            <button type="button" className="btn btn--ghost" onClick={onEditShortcuts}>Raccourcis</button>
+          </div>
         </section>
       </div>
     </>
