@@ -23,6 +23,8 @@ export interface Repo {
   reorder(airDate: string, filmIds: string[]): Emission;
   getLiveState(): LiveState;
   saveLiveState(state: LiveState): void;
+  getSetting(key: string): string | null;
+  setSetting(key: string, value: string): void;
 }
 
 interface FilmRow {
@@ -123,6 +125,10 @@ export function createRepo(db: Db): Repo {
       'SELECT ls.emission_id, ls.current_position, ls.mode, e.air_date FROM live_state ls LEFT JOIN emissions e ON e.id = ls.emission_id WHERE ls.id = 1',
     ),
     saveLive: db.prepare('UPDATE live_state SET emission_id = ?, current_position = ?, mode = ? WHERE id = 1'),
+    getSetting: db.prepare('SELECT value FROM settings WHERE key = ?'),
+    setSetting: db.prepare(
+      'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+    ),
   };
 
   function emissionId(airDate: string): number {
@@ -225,6 +231,12 @@ export function createRepo(db: Db): Repo {
     },
     saveLiveState(s) {
       q.saveLive.run(s.emissionId, s.position, s.mode);
+    },
+    getSetting(key) {
+      return (q.getSetting.get(key) as { value: string } | undefined)?.value ?? null;
+    },
+    setSetting(key, value) {
+      q.setSetting.run(key, value);
     },
   };
 }

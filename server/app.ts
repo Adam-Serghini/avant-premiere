@@ -8,6 +8,7 @@ import type { Repo } from './repo';
 import { registerCatalogRoutes } from './routes/catalog';
 import { registerEmissionRoutes } from './routes/emissions';
 import { registerLiveRoutes } from './routes/live';
+import { registerSettingsRoutes } from './routes/settings';
 import type { TmdbClient } from './tmdb/client';
 
 export interface AppDeps {
@@ -44,6 +45,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   registerCatalogRoutes(app, ctx);
   registerEmissionRoutes(app, ctx);
   registerLiveRoutes(app, ctx);
+  registerSettingsRoutes(app, ctx);
 
   if (deps.staticDir && existsSync(deps.staticDir)) {
     await app.register(fastifyStatic, { root: deps.staticDir });

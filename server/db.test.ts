@@ -64,5 +64,6 @@ describe('migrations', () => {
     expect(columns(db, 'emission_films')).toEqual(
       expect.arrayContaining(['opinion', 'anecdotes', 'extended_universe']),
     );
+    expect(columns(db, 'settings')).toEqual(['key', 'value']);
   });
 });

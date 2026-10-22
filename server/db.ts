@@ -71,6 +71,8 @@ const MIGRATIONS: Migration[] = [
       DROP TABLE live_state;
       ALTER TABLE live_state_v2 RENAME TO live_state;
     `),
+  // 3. Réglages (raccourcis de la régie).
+  (db) => db.exec('CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);'),
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
