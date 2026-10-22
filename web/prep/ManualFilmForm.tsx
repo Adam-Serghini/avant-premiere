@@ -1,15 +1,26 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { Film, ManualFilmInput } from '../../shared/types';
 import { api, errorMessage } from '../api';
 
 interface Props {
-  onCreated(film: Film): void;
+  /** Fiche à modifier ; absente pour une création. */
+  initial?: Film;
+  initialTitle?: string;
+  submitLabel: string;
+  cancelLabel: string;
+  onSaved(film: Film): void;
   onCancel(): void;
 }
 
-export function ManualFilmForm({ onCreated, onCancel }: Props) {
+const youtubeUrl = (film?: Film) => (film?.trailers[0] ? `https://youtu.be/${film.trailers[0].key}` : '');
+
+export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancelLabel, onSaved, onCancel }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Fiche déjà enregistrée : un nouvel essai après l'échec d'un envoi la modifie au lieu d'en créer une autre.
+  const saved = useRef<Film | null>(initial ?? null);
+  const posterInput = useRef<HTMLInputElement>(null);
+  const trailerInput = useRef<HTMLInputElement>(null);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,11 +31,22 @@ export function ManualFilmForm({ onCreated, onCancel }: Props) {
     if (text('releaseDateFr')) input.releaseDateFr = text('releaseDateFr');
     if (list('directors').length) input.directors = list('directors');
     if (list('cast').length) input.cast = list('cast');
+    if (list('genres').length) input.genres = list('genres');
+    if (text('runtimeMin')) input.runtimeMin = Number(text('runtimeMin'));
+    if (text('synopsis')) input.synopsis = text('synopsis');
     if (text('posterUrl')) input.posterUrl = text('posterUrl');
     if (text('trailerUrl')) input.trailerUrl = text('trailerUrl');
+    const posterFile = posterInput.current?.files?.[0];
+    const trailerFile = trailerInput.current?.files?.[0];
+
     setBusy(true);
+    setError(null);
     try {
-      onCreated(await api.createManual(input));
+      let film = saved.current ? await api.updateManual(saved.current.id, input) : await api.createManual(input);
+      saved.current = film;
+      if (posterFile) film = await api.uploadPoster(film.id, posterFile);
+      if (trailerFile) film = await api.uploadTrailer(film.id, trailerFile);
+      onSaved(film);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -37,33 +59,50 @@ export function ManualFilmForm({ onCreated, onCancel }: Props) {
       <div className="form-grid">
         <div className="field">
           <label htmlFor="mf-title">Titre *</label>
-          <input id="mf-title" name="title" required />
+          <input id="mf-title" name="title" required defaultValue={initial?.title ?? initialTitle} />
         </div>
         <div className="field">
           <label htmlFor="mf-date">Date de sortie</label>
-          <input id="mf-date" name="releaseDateFr" type="date" />
+          <input id="mf-date" name="releaseDateFr" type="date" defaultValue={initial?.releaseDateFr ?? ''} />
         </div>
         <div className="field">
           <label htmlFor="mf-dir">Réalisation (séparer par des virgules)</label>
-          <input id="mf-dir" name="directors" />
+          <input id="mf-dir" name="directors" defaultValue={initial?.directors.join(', ') ?? ''} />
         </div>
         <div className="field">
           <label htmlFor="mf-cast">Acteurs (séparer par des virgules)</label>
-          <input id="mf-cast" name="cast" />
+          <input id="mf-cast" name="cast" defaultValue={initial?.cast.join(', ') ?? ''} />
+        </div>
+        <div className="field">
+          <label htmlFor="mf-genres">Genres (séparer par des virgules)</label>
+          <input id="mf-genres" name="genres" defaultValue={initial?.genres.join(', ') ?? ''} />
+        </div>
+        <div className="field">
+          <label htmlFor="mf-runtime">Durée (minutes)</label>
+          <input id="mf-runtime" name="runtimeMin" type="number" inputMode="numeric" min={1} max={999}
+            defaultValue={initial?.runtimeMin ?? ''} />
+        </div>
+        <div className="field field--wide">
+          <label htmlFor="mf-synopsis">Résumé</label>
+          <textarea id="mf-synopsis" name="synopsis" rows={4} maxLength={5000} defaultValue={initial?.synopsis ?? ''} />
         </div>
         <div className="field">
           <label htmlFor="mf-poster">Lien de l’affiche</label>
-          <input id="mf-poster" name="posterUrl" type="url" />
+          <input id="mf-poster" name="posterUrl" type="url" defaultValue={initial?.posterUrl ?? ''} />
+          <label htmlFor="mf-poster-file" className="field-sub">Ou une image de l’ordinateur (jpg, png, webp)</label>
+          <input id="mf-poster-file" ref={posterInput} type="file" accept="image/jpeg,image/png,image/webp" />
         </div>
         <div className="field">
           <label htmlFor="mf-trailer">Lien YouTube de la bande-annonce</label>
-          <input id="mf-trailer" name="trailerUrl" type="url" />
+          <input id="mf-trailer" name="trailerUrl" type="url" defaultValue={youtubeUrl(initial)} />
+          <label htmlFor="mf-trailer-file" className="field-sub">Ou une vidéo de l’ordinateur (mp4, webm)</label>
+          <input id="mf-trailer-file" ref={trailerInput} type="file" accept="video/mp4,video/webm" />
         </div>
       </div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="toolbar-actions">
-        <button type="button" className="btn btn--ghost" onClick={onCancel}>Retour à la recherche</button>
-        <button type="submit" className="btn btn--primary" disabled={busy}>Créer et ajouter</button>
+        <button type="button" className="btn btn--ghost" onClick={onCancel}>{cancelLabel}</button>
+        <button type="submit" className="btn btn--primary" disabled={busy}>{busy ? 'Envoi…' : submitLabel}</button>
       </div>
     </form>
   );

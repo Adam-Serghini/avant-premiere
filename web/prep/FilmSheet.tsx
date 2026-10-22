@@ -5,6 +5,8 @@ import { effectiveTrailer, LOCAL_TRAILER, trailerLabels } from '../../shared/tra
 import { api } from '../api';
 import { formatRuntime, parseScore, releaseKicker, yearOf } from '../format';
 import { useAutosave, type SaveStatus } from '../hooks/useAutosave';
+import { EditFilmDialog } from './EditFilmDialog';
+import { PosterControl, VideoControl } from './MediaControls';
 
 interface Props {
   airDate: string;
@@ -12,6 +14,7 @@ interface Props {
   onSaved(emission: Emission): void;
   onRemove(): void;
   onRefresh(): void;
+  onFilmChanged(): void;
   onError(e: unknown): void;
 }
 
@@ -22,8 +25,9 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
   error: 'Non enregistré, nouvel essai…',
 };
 
-export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }: Props) {
+export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmChanged, onError }: Props) {
   const { film } = ef;
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({
     opinion: ef.opinion,
     anecdotes: ef.anecdotes,
@@ -61,6 +65,7 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
         {meta && <p className="sheet-meta">{meta}</p>}
         {film.cast.length > 0 && <p className="sheet-meta">Avec {film.cast.join(', ')}</p>}
       </div>
+      <PosterControl film={film} onChanged={onFilmChanged} />
 
       <p className="hint">Tes notes restent visibles par toi seul, jamais à l’antenne.</p>
       {NOTE_SECTIONS.map(({ field, label, placeholder }) => (
@@ -105,6 +110,7 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
               )}
             </div>
           )}
+          <VideoControl airDate={airDate} ef={ef} onSaved={onSaved} onChanged={onFilmChanged} />
         </fieldset>
       </div>
 
@@ -115,8 +121,12 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
         {film.source === 'tmdb' && (
           <button type="button" className="btn btn--ghost" onClick={onRefresh}>Actualiser la fiche</button>
         )}
+        {film.source === 'manual' && (
+          <button type="button" className="btn btn--ghost" onClick={() => setEditing(true)}>Modifier la fiche</button>
+        )}
         <button type="button" className="btn btn--ghost" onClick={onRemove}>Retirer du live</button>
       </div>
+      <EditFilmDialog film={editing ? film : null} onClose={() => setEditing(false)} onSaved={onFilmChanged} />
     </section>
   );
 }

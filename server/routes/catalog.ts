@@ -40,7 +40,7 @@ export async function ensureFilm(ctx: AppContext, filmId: string): Promise<Film>
   return fetchFilm(ctx, tmdbId);
 }
 
-function buildManualFilm(input: ManualFilmInput): Film {
+function buildManualFilm(input: ManualFilmInput, id: string = `manual:${randomUUID()}`): Film {
   const clean = (xs?: string[]) => (xs ?? []).map((s) => s.trim()).filter(Boolean);
   const title = input.title.trim();
   if (!title) throw new HttpError(400, 'invalid_title', 'Le titre est obligatoire.');
@@ -58,7 +58,7 @@ function buildManualFilm(input: ManualFilmInput): Film {
     trailers = [{ key, name: 'Bande-annonce', lang: 'fr', type: 'Trailer' }];
   }
   return {
-    id: `manual:${randomUUID()}`,
+    id,
     source: 'manual',
     title,
     originalTitle: null,
@@ -68,9 +68,9 @@ function buildManualFilm(input: ManualFilmInput): Film {
     localTrailerUrl: null,
     directors: clean(input.directors),
     cast: clean(input.cast).slice(0, 5),
-    genres: [],
-    runtimeMin: null,
-    synopsis: null,
+    genres: clean(input.genres),
+    runtimeMin: input.runtimeMin ?? null,
+    synopsis: input.synopsis?.trim() || null,
     trailers,
     fetchedAt: null,
   };
@@ -89,6 +89,9 @@ const manualSchema = {
     cast: stringList,
     posterUrl: { type: 'string', maxLength: 2000 },
     trailerUrl: { type: 'string', maxLength: 2000 },
+    genres: stringList,
+    runtimeMin: { type: 'integer', minimum: 1, maximum: 999 },
+    synopsis: { type: 'string', maxLength: 5000 },
   },
 } as const;
 
@@ -116,6 +119,18 @@ export function registerCatalogRoutes(app: FastifyInstance, ctx: AppContext): vo
     const film = buildManualFilm(req.body as ManualFilmInput);
     ctx.repo.upsertFilm(film);
     return reply.code(201).send(film);
+  });
+
+  app.put('/api/films/:filmId', { schema: { body: manualSchema } }, async (req) => {
+    const { filmId } = req.params as { filmId: string };
+    const existing = ctx.repo.getFilm(filmId);
+    if (!existing) throw new RepoError('not_found', 'Film inconnu.');
+    if (existing.source !== 'manual') {
+      throw new HttpError(400, 'not_manual', 'Seules les fiches créées à la main peuvent être modifiées.');
+    }
+    ctx.repo.upsertFilm(buildManualFilm(req.body as ManualFilmInput, filmId));
+    ctx.hub.broadcast();
+    return ctx.repo.getFilm(filmId);
   });
 
   app.post('/api/films/:filmId/refresh', async (req) => {

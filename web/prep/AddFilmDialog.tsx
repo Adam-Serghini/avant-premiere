@@ -19,6 +19,7 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState(false);
+  const [manualTitle, setManualTitle] = useState('');
   const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,6 +75,11 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
     else setAddError(message);
   }
 
+  const openManual = () => {
+    setManualTitle(query.trim());
+    setManual(true);
+  };
+
   const showNoResult = !searching && !error && query.trim().length >= 2 && results.length === 0;
 
   return (
@@ -102,7 +108,8 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
       {addError && <p className="form-error" role="alert">{addError}</p>}
 
       {manual ? (
-        <ManualFilmForm onCreated={(film) => void add(film.id)} onCancel={() => setManual(false)} />
+        <ManualFilmForm initialTitle={manualTitle} submitLabel="Créer et ajouter" cancelLabel="Retour à la recherche"
+          onSaved={(film) => void add(film.id)} onCancel={() => setManual(false)} />
       ) : (
         <div className="dialog-body">
           <div className="field">
@@ -112,7 +119,14 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           {searching && <p className="hint">Recherche…</p>}
-          {showNoResult && <p className="hint">Aucun résultat.</p>}
+          {showNoResult && (
+            <div className="no-result">
+              <p className="hint">Aucun résultat sur TMDB.</p>
+              <button type="button" className="btn btn--primary" onClick={openManual}>
+                Créer la fiche « {query.trim()} » à la main
+              </button>
+            </div>
+          )}
           <ul className="search-results">
             {results.map((r) => (
               <li key={r.id}>
@@ -125,7 +139,7 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
               </li>
             ))}
           </ul>
-          <button type="button" className="btn btn--ghost" onClick={() => setManual(true)}>
+          <button type="button" className="btn btn--ghost" onClick={openManual}>
             Pas sur TMDB ? Saisir à la main
           </button>
         </div>

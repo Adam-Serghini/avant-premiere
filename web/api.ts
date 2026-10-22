@@ -23,14 +23,16 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(method: string, path: string, body?: unknown, keepalive = false): Promise<T> {
+const enc = encodeURIComponent;
+
+async function request<T>(method: string, path: string, init: { body?: BodyInit; contentType?: string; keepalive?: boolean } = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
       method,
-      keepalive,
-      headers: body === undefined ? undefined : { 'content-type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      keepalive: init.keepalive ?? false,
+      headers: init.contentType ? { 'content-type': init.contentType } : undefined,
+      body: init.body,
     });
   } catch {
     throw new ApiError(0, 'network', 'Le serveur Avant-Première ne répond pas. Est-il bien lancé ?');
@@ -42,7 +44,27 @@ async function call<T>(method: string, path: string, body?: unknown, keepalive =
   return (await res.json()) as T;
 }
 
-const enc = encodeURIComponent;
+function call<T>(method: string, path: string, body?: unknown, keepalive = false): Promise<T> {
+  return body === undefined
+    ? request<T>(method, path, { keepalive })
+    : request<T>(method, path, { body: JSON.stringify(body), contentType: 'application/json', keepalive });
+}
+
+const UPLOAD_LIMITS = {
+  poster: { bytes: 20 * 1024 * 1024, message: 'Fichier trop lourd (20 Mo maximum).' },
+  trailer: { bytes: 1024 * 1024 * 1024, message: 'Fichier trop lourd (1 Go maximum).' },
+} as const;
+
+function upload(filmId: string, kind: 'poster' | 'trailer', file: File): Promise<Film> {
+  const limit = UPLOAD_LIMITS[kind];
+  // Vérifié avant l'envoi : inutile de faire transiter 2 Go pour se les voir refuser.
+  if (file.size > limit.bytes) return Promise.reject(new ApiError(413, 'too_large', limit.message));
+  return request<Film>('PUT', `/api/films/${enc(filmId)}/${kind}`, {
+    body: file,
+    contentType: file.type || 'application/octet-stream',
+  });
+}
+
 const emissionPath = (date: string) => `/api/emissions/${enc(date)}`;
 
 export const api = {
@@ -58,6 +80,11 @@ export const api = {
   refreshFilm: (filmId: string) => call<Film>('POST', `/api/films/${enc(filmId)}/refresh`),
   search: (q: string) => call<ReleaseSummary[]>('GET', `/api/search?q=${enc(q)}`),
   createManual: (input: ManualFilmInput) => call<Film>('POST', '/api/films/manual', input),
+  updateManual: (filmId: string, input: ManualFilmInput) => call<Film>('PUT', `/api/films/${enc(filmId)}`, input),
+  uploadPoster: (filmId: string, file: File) => upload(filmId, 'poster', file),
+  uploadTrailer: (filmId: string, file: File) => upload(filmId, 'trailer', file),
+  removePoster: (filmId: string) => call<Film>('DELETE', `/api/films/${enc(filmId)}/poster`),
+  removeTrailer: (filmId: string) => call<Film>('DELETE', `/api/films/${enc(filmId)}/trailer`),
   live: () => call<LiveSnapshot>('GET', '/api/live'),
   liveAction: (action: LiveAction) => call<LiveSnapshot>('POST', '/api/live', action),
   shortcuts: () => call<ShortcutMap>('GET', '/api/settings/shortcuts'),

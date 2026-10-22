@@ -137,4 +137,48 @@ describe('API catalogue', () => {
     const res = await app.inject({ method: 'POST', url: '/api/films/manual%3Aabc/refresh' });
     expect(res.statusCode).toBe(400);
   });
+
+  it('crée une fiche complète, puis la modifie', async () => {
+    const { app, repo } = await makeApp();
+    const created = (
+      await app.inject({
+        method: 'POST',
+        url: '/api/films/manual',
+        payload: { title: 'NASA', genres: ['Documentaire', ' '], runtimeMin: 92, synopsis: '  Une histoire de la conquête spatiale.  ' },
+      })
+    ).json() as Film;
+    expect(created).toMatchObject({
+      genres: ['Documentaire'],
+      runtimeMin: 92,
+      synopsis: 'Une histoire de la conquête spatiale.',
+      customPosterUrl: null,
+      localTrailerUrl: null,
+    });
+    repo.setFilmMedia(created.id, 'poster', '/media/x.jpg');
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/films/${encodeURIComponent(created.id)}`,
+      payload: { title: 'NASA, l’aventure', directors: ['Réalisatrice Y'] },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({
+      id: created.id,
+      title: 'NASA, l’aventure',
+      directors: ['Réalisatrice Y'],
+      genres: [],
+      customPosterUrl: '/media/x.jpg',
+    });
+  });
+
+  it('refuse de modifier une fiche TMDB ou inconnue, et une durée invalide', async () => {
+    const { app } = await makeApp();
+    await app.inject({ method: 'POST', url: '/api/films/tmdb%3A1001/refresh' });
+    const tmdbEdit = await app.inject({ method: 'PUT', url: '/api/films/tmdb%3A1001', payload: { title: 'X' } });
+    expect(tmdbEdit.statusCode).toBe(400);
+    expect(tmdbEdit.json()).toMatchObject({ error: 'not_manual' });
+    expect((await app.inject({ method: 'PUT', url: '/api/films/manual%3Aabsent', payload: { title: 'X' } })).statusCode).toBe(404);
+    const post = (payload: object) => app.inject({ method: 'POST', url: '/api/films/manual', payload });
+    expect((await post({ title: 'X', runtimeMin: 0 })).statusCode).toBe(400);
+    expect((await post({ title: 'X', synopsis: 'x'.repeat(5001) })).statusCode).toBe(400);
+  });
 });

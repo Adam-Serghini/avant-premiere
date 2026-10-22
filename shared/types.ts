@@ -83,6 +83,9 @@ export interface ManualFilmInput {
   cast?: string[];
   posterUrl?: string;
   trailerUrl?: string;
+  genres?: string[];
+  runtimeMin?: number;
+  synopsis?: string;
 }
 
 export interface LiveState {

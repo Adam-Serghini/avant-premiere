@@ -220,6 +220,7 @@ export function PrepPage() {
               onSaved={acceptEmission}
               onRemove={() => void removeFilm(active)}
               onRefresh={() => void refreshOne(active.film.id)}
+              onFilmChanged={() => void mutate(() => api.emission(date))}
               onError={report}
             />
           )}
