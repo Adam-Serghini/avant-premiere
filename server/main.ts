@@ -15,7 +15,7 @@ const port = Number(process.env.PORT ?? 4321);
 const apiKey = process.env.TMDB_API_KEY?.trim() ?? '';
 const tmdb = apiKey ? createTmdbClient({ apiKey }) : null;
 const repo = createRepo(openDb(resolve('data/cine-mardi.db')));
-const app = await buildApp({ repo, tmdb, staticDir: resolve('dist/web') });
+const app = await buildApp({ repo, tmdb, staticDir: resolve('dist/web'), mediaDir: resolve('data/media') });
 
 try {
   await app.listen({ port, host: 'localhost' });

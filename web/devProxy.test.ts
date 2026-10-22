@@ -8,6 +8,7 @@ const isProxied = (path: string) => proxyKeys.some((key) => path.startsWith(key)
 describe('proxy de développement', () => {
   it('envoie les appels d’API au serveur', () => {
     expect(isProxied('/api/today')).toBe(true);
+    expect(isProxied('/media/0b1c.png')).toBe(true);
     expect(isProxied('/api/live/stream?client=overlay')).toBe(true);
   });
 

@@ -1,6 +1,7 @@
 import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, LiveState, Period } from '../shared/types';
 import { defaultTrailerKey } from '../shared/trailer';
 import type { Db } from './db';
+import type { MediaKind } from './media';
 
 export class RepoError extends Error {
   constructor(
@@ -15,6 +16,7 @@ export class RepoError extends Error {
 export interface Repo {
   upsertFilm(film: Film): void;
   getFilm(id: string): Film | null;
+  setFilmMedia(filmId: string, kind: MediaKind, url: string | null): Film;
   getEmission(airDate: string): Emission;
   getEmissionById(id: number): Emission | null;
   addFilm(airDate: string, filmId: string, period: Period): Emission;
@@ -34,6 +36,8 @@ interface FilmRow {
   original_title: string | null;
   release_date_fr: string | null;
   poster_url: string | null;
+  custom_poster: string | null;
+  local_trailer: string | null;
   directors: string;
   cast_members: string;
   genres: string;
@@ -70,6 +74,8 @@ function filmFromRow(r: FilmRow): Film {
     originalTitle: r.original_title,
     releaseDateFr: r.release_date_fr,
     posterUrl: r.poster_url,
+    customPosterUrl: r.custom_poster,
+    localTrailerUrl: r.local_trailer,
     directors: JSON.parse(r.directors) as string[],
     cast: JSON.parse(r.cast_members) as string[],
     genres: JSON.parse(r.genres) as string[],
@@ -104,6 +110,8 @@ export function createRepo(db: Db): Repo {
         cast_members = excluded.cast_members, genres = excluded.genres, runtime_min = excluded.runtime_min,
         synopsis = excluded.synopsis, trailers = excluded.trailers, fetched_at = excluded.fetched_at`),
     getFilm: db.prepare('SELECT * FROM films WHERE id = ?'),
+    setPoster: db.prepare('UPDATE films SET custom_poster = ? WHERE id = ?'),
+    setTrailer: db.prepare('UPDATE films SET local_trailer = ? WHERE id = ?'),
     insertEmission: db.prepare('INSERT OR IGNORE INTO emissions (air_date, created_at) VALUES (?, ?)'),
     emissionByDate: db.prepare('SELECT id FROM emissions WHERE air_date = ?'),
     emissionById: db.prepare('SELECT id, air_date FROM emissions WHERE id = ?'),
@@ -218,6 +226,11 @@ export function createRepo(db: Db): Repo {
     getFilm(id) {
       const row = q.getFilm.get(id) as FilmRow | undefined;
       return row ? filmFromRow(row) : null;
+    },
+    setFilmMedia(filmId, kind, url) {
+      const result = (kind === 'poster' ? q.setPoster : q.setTrailer).run(url, filmId);
+      if (result.changes === 0) throw new RepoError('not_found', 'Film inconnu.');
+      return filmFromRow(q.getFilm.get(filmId) as FilmRow);
     },
     getEmission: (airDate) => load(emissionId(airDate))!,
     getEmissionById: (id) => load(id),

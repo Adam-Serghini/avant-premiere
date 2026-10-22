@@ -21,6 +21,10 @@ export interface Film {
   originalTitle: string | null;
   releaseDateFr: string | null;
   posterUrl: string | null;
+  /** Affiche choisie par l’utilisateur ; prioritaire sur `posterUrl`, jamais écrasée par TMDB. */
+  customPosterUrl: string | null;
+  /** Vidéo de l’ordinateur pour la bande-annonce. */
+  localTrailerUrl: string | null;
   directors: string[];
   cast: string[];
   genres: string[];

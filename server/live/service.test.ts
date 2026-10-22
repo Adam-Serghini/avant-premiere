@@ -14,6 +14,8 @@ function film(id: string, withTrailer: boolean): Film {
     originalTitle: null,
     releaseDateFr: null,
     posterUrl: null,
+    customPosterUrl: null,
+    localTrailerUrl: null,
     directors: [],
     cast: [],
     genres: [],

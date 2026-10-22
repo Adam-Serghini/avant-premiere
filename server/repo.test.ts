@@ -14,6 +14,8 @@ function film(id: string, overrides: Partial<Film> = {}): Film {
     originalTitle: null,
     releaseDateFr: '2026-10-14',
     posterUrl: null,
+    customPosterUrl: null,
+    localTrailerUrl: null,
     directors: ['Réalisatrice X'],
     cast: ['Acteur A'],
     genres: ['Drame'],
@@ -156,5 +158,18 @@ describe('repo', () => {
     const db2 = openDb(file);
     expect(createRepo(db2).getLiveState()).toEqual({ emissionId: e.id, airDate: DATE, position: 2, mode: 'full' });
     db2.close();
+  });
+
+  it('garde l’affiche et la vidéo choisies quand la fiche est mise à jour', () => {
+    const repo = setup();
+    repo.setFilmMedia('tmdb:1', 'poster', '/media/a.jpg');
+    repo.setFilmMedia('tmdb:1', 'trailer', '/media/b.mp4');
+    repo.upsertFilm(film('tmdb:1', { title: 'Titre TMDB' }));
+    expect(repo.getFilm('tmdb:1')).toMatchObject({
+      title: 'Titre TMDB',
+      customPosterUrl: '/media/a.jpg',
+      localTrailerUrl: '/media/b.mp4',
+    });
+    expect(() => repo.setFilmMedia('tmdb:404', 'poster', null)).toThrow(RepoError);
   });
 });

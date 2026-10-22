@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { vi } from 'vitest';
 import type { DateRange } from '../../shared/types';
 import { buildApp } from '../app';
@@ -29,6 +32,7 @@ export function fakeTmdb(overrides: Partial<TmdbClient> = {}) {
 export async function makeApp(opts: { tmdb?: TmdbClient | null } = {}) {
   const repo = createRepo(openDb(':memory:'));
   const tmdb = opts.tmdb === undefined ? fakeTmdb() : opts.tmdb;
-  const app = await buildApp({ repo, tmdb, now: () => new Date('2026-10-07T10:00:00Z') });
-  return { app, repo, tmdb };
+  const mediaDir = mkdtempSync(join(tmpdir(), 'avant-premiere-media-'));
+  const app = await buildApp({ repo, tmdb, mediaDir, now: () => new Date('2026-10-07T10:00:00Z') });
+  return { app, repo, tmdb, mediaDir };
 }

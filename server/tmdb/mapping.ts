@@ -68,6 +68,8 @@ export function toFilm(d: TmdbDetails, fetchedAt: string): Film {
     originalTitle: d.original_title && d.original_title !== d.title ? d.original_title : null,
     releaseDateFr: frenchReleaseDate(d),
     posterUrl: d.poster_path ? `${IMG}w780${d.poster_path}` : null,
+    customPosterUrl: null,
+    localTrailerUrl: null,
     directors,
     cast,
     genres: (d.genres ?? []).map((g) => g.name),

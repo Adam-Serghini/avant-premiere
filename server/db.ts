@@ -73,6 +73,12 @@ const MIGRATIONS: Migration[] = [
     `),
   // 3. Réglages (raccourcis de la régie).
   (db) => db.exec('CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);'),
+  // 4. Affiche et vidéo choisies par l’utilisateur.
+  (db) =>
+    db.exec(`
+      ALTER TABLE films ADD COLUMN custom_poster TEXT;
+      ALTER TABLE films ADD COLUMN local_trailer TEXT;
+    `),
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

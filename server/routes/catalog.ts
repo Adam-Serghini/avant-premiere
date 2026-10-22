@@ -29,7 +29,7 @@ export function parseTmdbId(filmId: string): number | null {
 async function fetchFilm(ctx: AppContext, tmdbId: number): Promise<Film> {
   const film = toFilm(await requireTmdb(ctx).details(tmdbId), ctx.now().toISOString());
   ctx.repo.upsertFilm(film);
-  return film;
+  return ctx.repo.getFilm(film.id)!;
 }
 
 export async function ensureFilm(ctx: AppContext, filmId: string): Promise<Film> {
@@ -64,6 +64,8 @@ function buildManualFilm(input: ManualFilmInput): Film {
     originalTitle: null,
     releaseDateFr: date,
     posterUrl: poster,
+    customPosterUrl: null,
+    localTrailerUrl: null,
     directors: clean(input.directors),
     cast: clean(input.cast).slice(0, 5),
     genres: [],
