@@ -37,7 +37,7 @@ describe('service du live', () => {
   it('donne un instantané vide avant le démarrage', () => {
     const { live } = setup();
     expect(live.snapshot(false)).toEqual({
-      state: { emissionId: null, airDate: null, position: 0, mode: 'card' },
+      state: { emissionId: null, airDate: null, position: 0, mode: 'full' },
       total: 0,
       rundown: [],
       current: null,
@@ -69,7 +69,7 @@ describe('service du live', () => {
     expect(live.snapshot(false).state.mode).toBe('trailer');
     live.apply({ type: 'next' });
     live.apply({ type: 'setMode', mode: 'trailer' });
-    expect(live.snapshot(false).state.mode).toBe('card');
+    expect(live.snapshot(false).state.mode).toBe('full');
   });
 
   it('recadre le film à l’antenne quand on le retire du conducteur', () => {
@@ -96,6 +96,6 @@ describe('service du live', () => {
     repo.removeFilm(DATE, 'tmdb:1');
     const snap = live.snapshot(false);
     expect(snap.current?.film.id).toBe('tmdb:2');
-    expect(snap.state.mode).toBe('card');
+    expect(snap.state.mode).toBe('full');
   });
 });

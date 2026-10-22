@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { LiveState } from '../../shared/types';
 import { clamp, reduce, type LiveContext } from './reducer';
 
-const base: LiveState = { emissionId: 1, airDate: '2026-10-13', position: 0, mode: 'card' };
+const base: LiveState = { emissionId: 1, airDate: '2026-10-13', position: 0, mode: 'full' };
 const ctx = (total: number, withTrailer = true): LiveContext => ({ total, hasTrailerAt: () => withTrailer });
 
 describe('réducteur du live', () => {
@@ -40,14 +40,14 @@ describe('réducteur du live', () => {
 
   it('revient sur la carte à la fin de la bande-annonce', () => {
     const playing = { ...base, mode: 'trailer' as const };
-    expect(reduce(playing, { type: 'trailerEnded' }, ctx(2)).mode).toBe('card');
+    expect(reduce(playing, { type: 'trailerEnded' }, ctx(2)).mode).toBe('full');
     const full = { ...base, mode: 'full' as const };
     expect(reduce(full, { type: 'trailerEnded' }, ctx(2))).toBe(full);
   });
 
   it('repasse en carte quand on change de film pendant une bande-annonce', () => {
     const playing = { ...base, mode: 'trailer' as const };
-    expect(reduce(playing, { type: 'next' }, ctx(2))).toMatchObject({ position: 1, mode: 'card' });
+    expect(reduce(playing, { type: 'next' }, ctx(2))).toMatchObject({ position: 1, mode: 'full' });
     const full = { ...base, mode: 'full' as const };
     expect(reduce(full, { type: 'next' }, ctx(2))).toMatchObject({ position: 1, mode: 'full' });
   });
@@ -58,7 +58,7 @@ describe('réducteur du live', () => {
       emissionId: 1,
       airDate: '2026-10-13',
       position: 0,
-      mode: 'card',
+      mode: 'full',
     });
   });
 

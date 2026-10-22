@@ -8,12 +8,10 @@ export function keyToAction(key: string): LiveAction | null {
     case 'ArrowLeft':
       return { type: 'prev' };
     case '1':
-      return { type: 'setMode', mode: 'card' };
-    case '2':
       return { type: 'setMode', mode: 'full' };
-    case '3':
+    case '2':
       return { type: 'setMode', mode: 'trailer' };
-    case '4':
+    case '3':
       return { type: 'setMode', mode: 'off' };
     default:
       return null;

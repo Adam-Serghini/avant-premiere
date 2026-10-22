@@ -1,8 +1,8 @@
 import { useId } from 'react';
 
 interface Props {
-  /** page : écran entier fixe ; card : cartouche de l'overlay ; screen : plein écran de l'overlay. */
-  variant: 'page' | 'card' | 'screen';
+  /** page : écran entier fixe ; screen : plein écran de l'overlay. */
+  variant: 'page' | 'screen';
 }
 
 export function Grain({ variant }: Props) {

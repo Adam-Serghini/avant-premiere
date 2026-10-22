@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { effectiveTrailerKey } from '../../shared/trailer';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
-import { CardView } from './CardView';
 import { FullView } from './FullView';
 import { TrailerView } from './TrailerView';
 import './overlay.css';
@@ -25,7 +24,6 @@ export function OverlayPage() {
 
   return (
     <div className="overlay-stage" key={key}>
-      {state.mode === 'card' && <CardView ef={current} position={state.position} total={total} />}
       {state.mode === 'full' && <FullView ef={current} position={state.position} total={total} />}
       {state.mode === 'trailer' && trailerKey && <TrailerView videoId={trailerKey} preview={preview} />}
     </div>

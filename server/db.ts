@@ -57,6 +57,20 @@ const MIGRATIONS: Migration[] = [
       UPDATE emission_films SET opinion = notes;
       ALTER TABLE emission_films DROP COLUMN notes;
     `),
+  // 2. Plus de mode Carte : la table est reconstruite pour changer la contrainte.
+  (db) =>
+    db.exec(`
+      CREATE TABLE live_state_v2 (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        emission_id INTEGER REFERENCES emissions(id) ON DELETE SET NULL,
+        current_position INTEGER NOT NULL DEFAULT 0,
+        mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full', 'trailer', 'off'))
+      );
+      INSERT INTO live_state_v2 (id, emission_id, current_position, mode)
+        SELECT id, emission_id, current_position, CASE mode WHEN 'card' THEN 'full' ELSE mode END FROM live_state;
+      DROP TABLE live_state;
+      ALTER TABLE live_state_v2 RENAME TO live_state;
+    `),
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

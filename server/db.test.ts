@@ -23,6 +23,7 @@ function v1File(): string {
     INSERT INTO emissions (air_date, created_at) VALUES ('2026-10-13', '2026-10-07T10:00:00.000Z');
     INSERT INTO emission_films (emission_id, film_id, position, period, notes, score)
       VALUES (1, 'tmdb:1', 0, 'past', 'Superbe film', 8);
+    UPDATE live_state SET emission_id = 1, current_position = 0, mode = 'card' WHERE id = 1;
   `);
   raw.close();
   return file;
@@ -47,6 +48,13 @@ describe('migrations', () => {
     const db = openDb(file);
     expect(createRepo(db).getEmission('2026-10-13').films[0]?.opinion).toBe('Superbe film');
     expect(db.pragma('user_version', { simple: true })).toBe(SCHEMA_VERSION);
+    db.close();
+  });
+
+  it('remplace le mode Carte par la Fiche', () => {
+    const db = openDb(v1File());
+    expect(createRepo(db).getLiveState()).toMatchObject({ emissionId: 1, mode: 'full' });
+    expect(() => db.prepare("UPDATE live_state SET mode = 'card' WHERE id = 1").run()).toThrow();
     db.close();
   });
 

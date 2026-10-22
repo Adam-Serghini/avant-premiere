@@ -16,7 +16,7 @@ export function clamp(state: LiveState, total: number): LiveState {
 
 function moveTo(state: LiveState, position: number): LiveState {
   if (position === state.position) return state;
-  const mode: DisplayMode = state.mode === 'trailer' ? 'card' : state.mode;
+  const mode: DisplayMode = state.mode === 'trailer' ? 'full' : state.mode;
   return { ...state, position, mode };
 }
 
@@ -25,7 +25,7 @@ export function reduce(state: LiveState, action: ReducerAction, ctx: LiveContext
   switch (action.type) {
     case 'start':
       if (state.emissionId === action.emissionId) return clamp(state, ctx.total);
-      return { emissionId: action.emissionId, airDate: action.airDate, position: 0, mode: 'card' };
+      return { emissionId: action.emissionId, airDate: action.airDate, position: 0, mode: 'full' };
     case 'next':
       return moveTo(state, Math.min(state.position + 1, last));
     case 'prev':
@@ -38,6 +38,6 @@ export function reduce(state: LiveState, action: ReducerAction, ctx: LiveContext
       if (action.mode === 'trailer' && !ctx.hasTrailerAt(state.position)) return state;
       return { ...state, mode: action.mode };
     case 'trailerEnded':
-      return state.mode === 'trailer' ? { ...state, mode: 'card' } : state;
+      return state.mode === 'trailer' ? { ...state, mode: 'full' } : state;
   }
 }

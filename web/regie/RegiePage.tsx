@@ -14,10 +14,9 @@ import { useShortcuts } from './shortcuts';
 import './regie.css';
 
 const MODES: { mode: DisplayMode; label: string; key: string }[] = [
-  { mode: 'card', label: 'Carte', key: '1' },
-  { mode: 'full', label: 'Plein écran', key: '2' },
-  { mode: 'trailer', label: 'Bande-annonce', key: '3' },
-  { mode: 'off', label: 'Masquer', key: '4' },
+  { mode: 'full', label: 'Fiche', key: '1' },
+  { mode: 'trailer', label: 'Bande-annonce', key: '2' },
+  { mode: 'off', label: 'Masquer', key: '3' },
 ];
 
 export function RegiePage() {
@@ -158,7 +157,7 @@ function LiveBoard({ snapshot, send }: { snapshot: LiveSnapshot; send: (a: LiveA
             </button>
           </div>
           <p className="hint">
-            Raccourcis : <kbd>←</kbd> <kbd>→</kbd> pour changer de film, <kbd>1</kbd> à <kbd>4</kbd> pour l’affichage.
+            Raccourcis : <kbd>←</kbd> <kbd>→</kbd> pour changer de film, <kbd>1</kbd> à <kbd>3</kbd> pour l’affichage.
           </p>
         </section>
       </div>

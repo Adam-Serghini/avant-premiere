@@ -4,7 +4,7 @@ import { LiveHub } from './hub';
 
 function build(overlayConnected: boolean): LiveSnapshot {
   return {
-    state: { emissionId: null, airDate: null, position: 0, mode: 'card' },
+    state: { emissionId: null, airDate: null, position: 0, mode: 'full' },
     total: 0,
     rundown: [],
     current: null,

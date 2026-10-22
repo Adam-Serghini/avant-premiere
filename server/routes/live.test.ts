@@ -5,6 +5,14 @@ import { makeApp } from '../test/helpers';
 
 const DATE = '2026-10-13';
 
+describe('mode Carte supprimé', () => {
+  it('refuse le mode Carte, qui n’existe plus', async () => {
+    const { app } = await makeApp();
+    const res = await app.inject({ method: 'POST', url: '/api/live', payload: { type: 'setMode', mode: 'card' } });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
 async function withTwoFilms() {
   const ctx = await makeApp();
   for (const filmId of ['tmdb:1001', 'tmdb:2001']) {
@@ -19,7 +27,7 @@ describe('API du live', () => {
   it('démarre l’émission et avance', async () => {
     const { act } = await withTwoFilms();
     let snap = await act({ type: 'start', airDate: DATE });
-    expect(snap.state).toMatchObject({ airDate: DATE, position: 0, mode: 'card' });
+    expect(snap.state).toMatchObject({ airDate: DATE, position: 0, mode: 'full' });
     expect(snap.total).toBe(2);
     expect(snap.rundown.map((r) => r.filmId)).toEqual(['tmdb:1001', 'tmdb:2001']);
     snap = await act({ type: 'next' });
@@ -32,7 +40,7 @@ describe('API du live', () => {
     const { act } = await withTwoFilms();
     await act({ type: 'start', airDate: DATE });
     expect((await act({ type: 'setMode', mode: 'trailer' })).state.mode).toBe('trailer');
-    expect((await act({ type: 'trailerEnded' })).state.mode).toBe('card');
+    expect((await act({ type: 'trailerEnded' })).state.mode).toBe('full');
   });
 
   it('refuse une action invalide', async () => {

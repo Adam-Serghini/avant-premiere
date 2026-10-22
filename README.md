@@ -18,7 +18,7 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
   - écrire ses notes, qui s'enregistrent automatiquement.
 - **Régie** (http://localhost:4321/regie) :
   - pendant le live, `→` et `←` changent de film ;
-  - les touches `1` à `4` choisissent l'affichage : carte, plein écran, bande-annonce, masquer.
+  - les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer.
 
 ## Configurer OBS
 
@@ -32,8 +32,7 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
 ## Checklist avant le premier live
 
 - [ ] Le voyant de la régie indique **OBS connecté**.
-- [ ] En mode **Carte**, la caméra reste visible autour du cartouche (le fond est bien transparent).
-- [ ] En mode **Bande-annonce**, le son s'entend dans le moniteur audio d'OBS, et la carte revient à la fin.
+- [ ] En mode **Bande-annonce**, le son s'entend dans le moniteur audio d'OBS, et la fiche revient à la fin.
 - [ ] Après avoir fermé et rouvert OBS, l'affichage revient tout seul.
 - [ ] Après avoir fermé et relancé Avant-Première, la régie reprend sur le même film.
 

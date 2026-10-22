@@ -42,7 +42,7 @@
   position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0;
   transform-origin: 0 0; pointer-events: none;
 }
-.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .modes .btn { min-height: 52px; }
 .nav-buttons { display: flex; gap: 8px; }
 .nav-buttons .btn { min-height: 64px; flex: 1; }

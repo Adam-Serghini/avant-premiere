@@ -7,10 +7,10 @@ describe('raccourcis de la régie', () => {
   it('associe chaque touche à une action', () => {
     expect(keyToAction('ArrowRight')).toEqual({ type: 'next' });
     expect(keyToAction('ArrowLeft')).toEqual({ type: 'prev' });
-    expect(keyToAction('1')).toEqual({ type: 'setMode', mode: 'card' });
-    expect(keyToAction('2')).toEqual({ type: 'setMode', mode: 'full' });
-    expect(keyToAction('3')).toEqual({ type: 'setMode', mode: 'trailer' });
-    expect(keyToAction('4')).toEqual({ type: 'setMode', mode: 'off' });
+    expect(keyToAction('1')).toEqual({ type: 'setMode', mode: 'full' });
+    expect(keyToAction('2')).toEqual({ type: 'setMode', mode: 'trailer' });
+    expect(keyToAction('3')).toEqual({ type: 'setMode', mode: 'off' });
+    expect(keyToAction('4')).toBeNull();
     expect(keyToAction('x')).toBeNull();
   });
 
@@ -20,7 +20,7 @@ describe('raccourcis de la régie', () => {
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: '3' });
     expect(onAction).toHaveBeenNthCalledWith(1, { type: 'next' });
-    expect(onAction).toHaveBeenNthCalledWith(2, { type: 'setMode', mode: 'trailer' });
+    expect(onAction).toHaveBeenNthCalledWith(2, { type: 'setMode', mode: 'off' });
     unmount();
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(onAction).toHaveBeenCalledTimes(2);

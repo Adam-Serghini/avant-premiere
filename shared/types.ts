@@ -1,5 +1,5 @@
 export type Period = 'past' | 'next';
-export type DisplayMode = 'card' | 'full' | 'trailer' | 'off';
+export type DisplayMode = 'full' | 'trailer' | 'off';
 export type TmdbStatus = 'ok' | 'missing' | 'invalid' | 'unavailable';
 
 export interface DateRange {

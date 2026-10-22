@@ -27,7 +27,7 @@ export function createLiveService(repo: Repo): LiveService {
   function normalize(raw: LiveState, ctx: LiveContext): LiveState {
     const state = clamp(raw, ctx.total);
     if (state.mode === 'trailer' && (state.position !== raw.position || !ctx.hasTrailerAt(state.position))) {
-      return { ...state, mode: 'card' };
+      return { ...state, mode: 'full' };
     }
     return state;
   }

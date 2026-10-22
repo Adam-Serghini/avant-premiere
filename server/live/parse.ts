@@ -2,7 +2,7 @@ import type { DisplayMode, LiveAction } from '../../shared/types';
 import { isIsoDate } from '../dates';
 import { HttpError } from '../http';
 
-const MODES: readonly DisplayMode[] = ['card', 'full', 'trailer', 'off'];
+const MODES: readonly DisplayMode[] = ['full', 'trailer', 'off'];
 
 export function parseLiveAction(body: unknown): LiveAction {
   const b = (body ?? {}) as Record<string, unknown>;

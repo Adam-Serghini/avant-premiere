@@ -149,7 +149,7 @@ describe('repo', () => {
     const file = join(tmp, 'test.db');
     const db = openDb(file);
     const repo = createRepo(db);
-    expect(repo.getLiveState()).toEqual({ emissionId: null, airDate: null, position: 0, mode: 'card' });
+    expect(repo.getLiveState()).toEqual({ emissionId: null, airDate: null, position: 0, mode: 'full' });
     const e = repo.getEmission(DATE);
     repo.saveLiveState({ emissionId: e.id, airDate: DATE, position: 2, mode: 'full' });
     db.close();
