@@ -16,11 +16,11 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
   - cocher les films à traiter ;
   - les ordonner avec les flèches ;
   - écrire ses notes, qui s'enregistrent automatiquement ;
-  - pas sur TMDB ? créer la fiche à la main ; « Utiliser une autre affiche » et « Vidéo de l'ordinateur » ajoutent ses propres fichiers (rangés dans `data/media/`).
+  - pas sur TMDB ? créer la fiche à la main ; « Utiliser une autre affiche » et « Vidéo de l'ordinateur » ajoutent ses propres fichiers (rangés dans `data/media/`). Pour les vidéos de l'ordinateur, préférer le MP4 en H.264 : c'est le format le plus sûr dans OBS.
 - **Régie** (http://localhost:4321/regie) :
-  - pendant le live, `→` et `←` changent de film ;
-  - les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer ;
-  - le bouton **Raccourcis** permet de changer les touches.
+  - pendant le live, par défaut, `→` et `←` changent de film ;
+  - par défaut, les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer ;
+  - le bouton **Raccourcis** permet de changer ces touches.
 
 ## Intégrer à la scène React d'OBS
 

@@ -43,6 +43,19 @@ describe('fichiers de l’ordinateur', () => {
     expect(onChanged).not.toHaveBeenCalled();
   });
 
+  it('choisit le libellé selon l’origine de la fiche', () => {
+    const custom = { customPosterUrl: '/media/a.png' };
+    const label = (f: Partial<Film>) => {
+      render(<PosterControl film={{ ...film, ...custom, ...f } as Film} onChanged={vi.fn()} />);
+      const names = screen.getAllByRole('button').map((b) => b.textContent);
+      cleanup();
+      return names;
+    };
+    expect(label({})).toEqual(['Revenir à l’affiche TMDB']);
+    expect(label({ source: 'manual', posterUrl: 'https://x.test/a.jpg' })).toEqual(['Revenir à l’affiche du lien']);
+    expect(label({ source: 'manual', posterUrl: null })).toEqual(['Retirer l’affiche']);
+  });
+
   it('revient à l’affiche TMDB', async () => {
     vi.mocked(api.removePoster).mockResolvedValue(film);
     const onChanged = vi.fn();

@@ -52,6 +52,19 @@ describe('stockage des fichiers', () => {
     expect(readdirSync(dir)).toEqual([]);
   });
 
+  it('échoue proprement si le fichier ne peut pas être écrit (petit envoi)', async () => {
+    const media = store();
+    rmSync(dir, { recursive: true, force: true });
+    await expect(media.save('poster', 'image/png', Readable.from([PNG]))).rejects.toMatchObject({ status: 500 });
+  });
+
+  it('échoue proprement si le fichier ne peut pas être écrit (gros envoi)', async () => {
+    const media = store();
+    rmSync(dir, { recursive: true, force: true });
+    const chunks = [PNG, ...Array.from({ length: 8 }, () => Buffer.alloc(64 * 1024))];
+    await expect(media.save('poster', 'image/png', Readable.from(chunks))).rejects.toMatchObject({ status: 500 });
+  });
+
   it('supprime un fichier, même déjà absent, et ignore les adresses étrangères', async () => {
     const media = store();
     const url = await media.save('poster', 'image/png', Readable.from([PNG]));

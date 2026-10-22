@@ -52,7 +52,7 @@ export function PosterControl({ film, onChanged }: { film: Film; onChanged(): vo
               await api.removePoster(film.id);
               onChanged();
             })}>
-            {film.source === 'tmdb' ? 'Revenir à l’affiche TMDB' : 'Retirer l’affiche'}
+            {film.source === 'tmdb' ? 'Revenir à l’affiche TMDB' : film.posterUrl ? 'Revenir à l’affiche du lien' : 'Retirer l’affiche'}
           </button>
         )}
       </div>

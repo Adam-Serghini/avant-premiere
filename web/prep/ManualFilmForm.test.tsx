@@ -57,6 +57,21 @@ describe('formulaire de fiche', () => {
     expect(api.createManual).toHaveBeenCalledTimes(1);
   });
 
+  it('la vidéo de l’ordinateur remplace le lien YouTube', async () => {
+    vi.mocked(api.createManual).mockResolvedValue(film);
+    vi.mocked(api.uploadTrailer).mockResolvedValue(film);
+    const onSaved = vi.fn();
+    render(<ManualFilmForm {...props} initialTitle="NASA" onSaved={onSaved} />);
+    expect(screen.getByText('Si tu choisis une vidéo, elle remplace le lien YouTube.')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/Lien YouTube/), { target: { value: 'https://youtu.be/abc' } });
+    const video = new File(['x'], 'v.mp4', { type: 'video/mp4' });
+    fireEvent.change(screen.getByLabelText(/Ou une vidéo de l’ordinateur/), { target: { files: [video] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Créer et ajouter' }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    expect(api.createManual).toHaveBeenCalledWith({ title: 'NASA' });
+    expect(api.uploadTrailer).toHaveBeenCalledWith('manual:1', video);
+  });
+
   it('préremplit et modifie une fiche existante', async () => {
     vi.mocked(api.updateManual).mockResolvedValue(film);
     const onSaved = vi.fn();

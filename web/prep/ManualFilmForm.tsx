@@ -35,9 +35,10 @@ export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancel
     if (text('runtimeMin')) input.runtimeMin = Number(text('runtimeMin'));
     if (text('synopsis')) input.synopsis = text('synopsis');
     if (text('posterUrl')) input.posterUrl = text('posterUrl');
-    if (text('trailerUrl')) input.trailerUrl = text('trailerUrl');
     const posterFile = posterInput.current?.files?.[0];
     const trailerFile = trailerInput.current?.files?.[0];
+    // La vidéo de l'ordinateur remplace le lien YouTube.
+    if (text('trailerUrl') && !trailerFile) input.trailerUrl = text('trailerUrl');
 
     setBusy(true);
     setError(null);
@@ -97,6 +98,7 @@ export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancel
           <input id="mf-trailer" name="trailerUrl" type="url" defaultValue={youtubeUrl(initial)} />
           <label htmlFor="mf-trailer-file" className="field-sub">Ou une vidéo de l’ordinateur (mp4, webm)</label>
           <input id="mf-trailer-file" ref={trailerInput} type="file" accept="video/mp4,video/webm" />
+          <p className="hint">Si tu choisis une vidéo, elle remplace le lien YouTube.</p>
         </div>
       </div>
       {error && <p className="form-error" role="alert">{error}</p>}

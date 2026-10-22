@@ -44,10 +44,17 @@ async function request<T>(method: string, path: string, init: { body?: BodyInit;
   return (await res.json()) as T;
 }
 
+// Chrome refuse un corps « keepalive » de plus de 64 Kio : au-delà de cette marge, on envoie sans.
+const KEEPALIVE_MAX_BYTES = 60_000;
+
 function call<T>(method: string, path: string, body?: unknown, keepalive = false): Promise<T> {
-  return body === undefined
-    ? request<T>(method, path, { keepalive })
-    : request<T>(method, path, { body: JSON.stringify(body), contentType: 'application/json', keepalive });
+  if (body === undefined) return request<T>(method, path, { keepalive });
+  const json = JSON.stringify(body);
+  return request<T>(method, path, {
+    body: json,
+    contentType: 'application/json',
+    keepalive: keepalive && new Blob([json]).size < KEEPALIVE_MAX_BYTES,
+  });
 }
 
 const UPLOAD_LIMITS = {

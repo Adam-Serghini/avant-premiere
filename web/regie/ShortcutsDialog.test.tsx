@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SHORTCUTS } from '../../shared/shortcuts';
 import { ShortcutsDialog } from './ShortcutsDialog';
@@ -50,6 +50,23 @@ describe('fenêtre des raccourcis', () => {
     expect(cancel.defaultPrevented).toBe(true);
     fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' });
     expect(screen.queryByText(/Appuie sur une touche/)).toBeNull();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('Échap pendant la question d’échange la ferme sans fermer la fenêtre', () => {
+    const { onSave, onClose, modify } = setup();
+    modify(0);
+    fireEvent.keyDown(window, { code: 'Digit1', key: '&' });
+    expect(screen.getByRole('alert')).toBeTruthy();
+    const dialog = document.querySelector('dialog')!;
+    const cancel = new Event('cancel', { cancelable: true });
+    act(() => {
+      dialog.dispatchEvent(cancel);
+    });
+    expect(cancel.defaultPrevented).toBe(true);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(dialog.open).toBe(true);
     expect(onSave).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
   });

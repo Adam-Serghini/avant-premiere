@@ -65,6 +65,9 @@ export function createMediaStore(dir: string): MediaStore {
       const name = `${randomUUID()}.${ext}`;
       const file = join(dir, name);
       const out = createWriteStream(file);
+      // Une erreur d'écriture (dossier supprimé, disque plein, antivirus) ne doit ni tuer le serveur ni bloquer la requête.
+      const failed = new Promise<never>((_, reject) => out.once('error', reject));
+      failed.catch(() => {});
       let size = 0;
       let head = Buffer.alloc(0);
       let checked = false;
@@ -81,18 +84,21 @@ export function createMediaStore(dir: string): MediaStore {
             head = Buffer.concat([head, chunk]);
             if (head.length >= 12) check();
           }
-          if (!out.write(chunk)) await once(out, 'drain');
+          if (!out.write(chunk)) await Promise.race([once(out, 'drain'), failed]);
         }
         if (!checked) check();
-        await new Promise<void>((resolve, reject) => out.end((err?: Error | null) => (err ? reject(err) : resolve())));
+        await Promise.race([new Promise<void>((resolve, reject) => out.end((err?: Error | null) => (err ? reject(err) : resolve()))), failed]);
       } catch (err) {
         // On attend la fermeture du fichier avant de le supprimer (Windows refuse sinon).
-        await new Promise<void>((resolve) => {
-          out.once('close', () => resolve());
-          out.destroy();
-        });
+        if (!out.closed) {
+          await new Promise<void>((resolve) => {
+            out.once('close', () => resolve());
+            out.destroy();
+          });
+        }
         rmSync(file, { force: true });
-        throw err;
+        if (err instanceof HttpError) throw err;
+        throw new HttpError(500, 'write_failed', 'Impossible d’enregistrer le fichier sur le disque.');
       }
       return `/media/${name}`;
     },

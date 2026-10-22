@@ -76,6 +76,15 @@ export function ShortcutsDialog({ open, map, onClose, onSave }: Props) {
     return () => window.removeEventListener('keydown', handler, true);
   }, [capturing, map]);
 
+  useEffect(() => {
+    if (!pending) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.code === 'Escape') setPending(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [pending]);
+
   function close() {
     setCapturing(null);
     setPending(null);
@@ -86,8 +95,9 @@ export function ShortcutsDialog({ open, map, onClose, onSave }: Props) {
   return (
     <dialog ref={ref} className="shortcuts-dialog" aria-labelledby="shortcuts-title" onClose={close}
       onCancel={(e) => {
-        // Échap pendant la capture annule seulement la capture.
+        // Échap pendant la capture ou la question d'échange annule seulement celle-ci.
         if (capturing || pending) e.preventDefault();
+        setPending(null);
       }}>
       <div className="dialog-head">
         <h2 id="shortcuts-title">Raccourcis</h2>
