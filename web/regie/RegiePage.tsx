@@ -9,6 +9,7 @@ import { Poster } from '../components/Poster';
 import { formatRuntime, readDateParam, releaseKicker, yearOf } from '../format';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
 import { OverlayPreview } from './OverlayPreview';
+import { PrivateNotes } from './PrivateNotes';
 import { useShortcuts } from './shortcuts';
 import './regie.css';
 
@@ -127,10 +128,7 @@ function LiveBoard({ snapshot, send }: { snapshot: LiveSnapshot; send: (a: LiveA
                 </p>
                 {current.film.directors.length > 0 && <p className="hint">De {current.film.directors.join(', ')}</p>}
                 {current.film.cast.length > 0 && <p className="hint">Avec {current.film.cast.join(', ')}</p>}
-                <div className="private-notes">
-                  <span className="label">Mes notes · pas à l’antenne{current.score !== null ? ` · ${current.score}/10` : ''}</span>
-                  <p>{current.notes.trim() || 'Aucune note pour ce film.'}</p>
-                </div>
+                <PrivateNotes ef={current} />
               </div>
             </div>
           </section>

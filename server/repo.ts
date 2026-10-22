@@ -46,7 +46,9 @@ interface EmissionFilmRow extends FilmRow {
   film_id: string;
   position: number;
   period: Period;
-  notes: string;
+  opinion: string;
+  anecdotes: string;
+  extended_universe: string;
   score: number | null;
   trailer_key: string | null;
 }
@@ -81,7 +83,9 @@ function emissionFilmFromRow(r: EmissionFilmRow): EmissionFilm {
     film: filmFromRow(r),
     position: r.position,
     period: r.period,
-    notes: r.notes,
+    opinion: r.opinion,
+    anecdotes: r.anecdotes,
+    extendedUniverse: r.extended_universe,
     score: r.score,
     trailerKey: r.trailer_key,
   };
@@ -107,11 +111,11 @@ export function createRepo(db: Db): Repo {
     efRow: db.prepare('SELECT * FROM emission_films WHERE emission_id = ? AND film_id = ?'),
     countFilms: db.prepare('SELECT COUNT(*) AS n FROM emission_films WHERE emission_id = ?'),
     insertEf: db.prepare(
-      "INSERT INTO emission_films (emission_id, film_id, position, period, notes, score, trailer_key) VALUES (?, ?, ?, ?, '', NULL, ?)",
+      'INSERT INTO emission_films (emission_id, film_id, position, period, score, trailer_key) VALUES (?, ?, ?, ?, NULL, ?)',
     ),
     deleteEf: db.prepare('DELETE FROM emission_films WHERE emission_id = ? AND film_id = ?'),
     updateEf: db.prepare(
-      'UPDATE emission_films SET notes = ?, score = ?, trailer_key = ? WHERE emission_id = ? AND film_id = ?',
+      'UPDATE emission_films SET opinion = ?, anecdotes = ?, extended_universe = ?, score = ?, trailer_key = ? WHERE emission_id = ? AND film_id = ?',
     ),
     setPosition: db.prepare('UPDATE emission_films SET position = ? WHERE emission_id = ? AND film_id = ?'),
     orderedIds: db.prepare('SELECT film_id FROM emission_films WHERE emission_id = ? ORDER BY position'),
@@ -167,9 +171,11 @@ export function createRepo(db: Db): Repo {
     if (score !== null && !(Number.isInteger(score) && score >= 0 && score <= 10)) {
       throw new RepoError('invalid', 'La note doit être un nombre entier entre 0 et 10.');
     }
-    const notes = patch.notes === undefined ? row.notes : patch.notes;
+    const opinion = patch.opinion ?? row.opinion;
+    const anecdotes = patch.anecdotes ?? row.anecdotes;
+    const extendedUniverse = patch.extendedUniverse ?? row.extended_universe;
     const trailerKey = patch.trailerKey === undefined ? row.trailer_key : patch.trailerKey;
-    q.updateEf.run(notes, score, trailerKey, id, filmId);
+    q.updateEf.run(opinion, anecdotes, extendedUniverse, score, trailerKey, id, filmId);
     return load(id)!;
   });
 

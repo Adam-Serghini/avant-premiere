@@ -30,7 +30,7 @@ describe('API émissions', () => {
     };
     await step({ method: 'POST', url: `${BASE}/films`, payload: { filmId: 'tmdb:1001', period: 'past' } });
     await step({ method: 'POST', url: `${BASE}/films`, payload: { filmId: 'tmdb:2001', period: 'next' } });
-    await step({ method: 'PATCH', url: filmUrl('tmdb:1001'), payload: { notes: 'x' } });
+    await step({ method: 'PATCH', url: filmUrl('tmdb:1001'), payload: { opinion: 'x' } });
     await step({ method: 'PUT', url: `${BASE}/order`, payload: { filmIds: ['tmdb:2001', 'tmdb:1001'] } });
     await step({ method: 'DELETE', url: filmUrl('tmdb:2001') });
   });
@@ -62,12 +62,22 @@ describe('API émissions', () => {
     let res = await app.inject({ method: 'PUT', url: `${BASE}/order`, payload: { filmIds: ['tmdb:2001', 'tmdb:1001'] } });
     expect((res.json() as Emission).films.map((f) => f.film.id)).toEqual(['tmdb:2001', 'tmdb:1001']);
 
-    res = await app.inject({ method: 'PATCH', url: filmUrl('tmdb:1001'), payload: { notes: 'Très beau', score: 8 } });
-    expect((res.json() as Emission).films[1]).toMatchObject({ notes: 'Très beau', score: 8 });
+    res = await app.inject({ method: 'PATCH', url: filmUrl('tmdb:1001'), payload: { opinion: 'Très beau', score: 8 } });
+    expect((res.json() as Emission).films[1]).toMatchObject({ opinion: 'Très beau', score: 8 });
 
     res = await app.inject({ method: 'DELETE', url: filmUrl('tmdb:2001') });
     const after = res.json() as Emission;
     expect(after.films.map((f) => [f.film.id, f.position])).toEqual([['tmdb:1001', 0]]);
+  });
+
+  it('refuse une section de notes trop longue', async () => {
+    const { app } = await withFilms('tmdb:1001');
+    const res = await app.inject({
+      method: 'PATCH',
+      url: filmUrl('tmdb:1001'),
+      payload: { anecdotes: 'x'.repeat(20001) },
+    });
+    expect(res.statusCode).toBe(400);
   });
 
   it('refuse une note hors de 0 à 10', async () => {

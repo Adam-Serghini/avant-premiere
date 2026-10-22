@@ -51,7 +51,9 @@ export interface EmissionFilm {
   film: Film;
   position: number;
   period: Period;
-  notes: string;
+  opinion: string;
+  anecdotes: string;
+  extendedUniverse: string;
   score: number | null;
   trailerKey: string | null;
 }
@@ -63,7 +65,9 @@ export interface Emission {
 }
 
 export interface EmissionFilmPatch {
-  notes?: string;
+  opinion?: string;
+  anecdotes?: string;
+  extendedUniverse?: string;
   score?: number | null;
   trailerKey?: string | null;
 }

@@ -33,6 +33,7 @@
 .on-air-info h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1.05; }
 .private-notes { margin-top: 8px; padding: 16px; background: var(--surface-2); border: 1px dashed var(--line); border-radius: 2px; }
 .private-notes .label { font-size: 16px; color: var(--text-2); }
+.private-note h2 { margin: 14px 0 0; font-size: 15px; font-weight: 400; color: var(--gold); }
 .private-notes p { margin: 6px 0 0; white-space: pre-wrap; line-height: 1.5; }
 
 .controls { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }

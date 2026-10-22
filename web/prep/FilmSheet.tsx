@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Emission, EmissionFilm } from '../../shared/types';
+import { NOTE_SECTIONS } from '../../shared/notes';
 import { effectiveTrailerKey, trailerLabels } from '../../shared/trailer';
 import { api } from '../api';
 import { formatRuntime, parseScore, releaseKicker, yearOf } from '../format';
@@ -23,7 +24,12 @@ const STATUS_TEXT: Record<SaveStatus, string> = {
 
 export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }: Props) {
   const { film } = ef;
-  const [draft, setDraft] = useState({ notes: ef.notes, score: ef.score });
+  const [draft, setDraft] = useState({
+    opinion: ef.opinion,
+    anecdotes: ef.anecdotes,
+    extendedUniverse: ef.extendedUniverse,
+    score: ef.score,
+  });
   const { status, errorMessage } = useAutosave(draft, async (d) => {
     onSaved(await api.patchFilm(airDate, film.id, d));
   });
@@ -56,12 +62,17 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
         {film.cast.length > 0 && <p className="sheet-meta">Avec {film.cast.join(', ')}</p>}
       </div>
 
-      <div className="field">
-        <label htmlFor="notes">Mes notes (visibles par moi seul)</label>
-        <textarea id="notes" rows={6} maxLength={20000} value={draft.notes}
-          placeholder="Ton avis, les points à aborder, une anecdote de tournage…"
-          onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} />
-      </div>
+      <p className="hint">Tes notes restent visibles par toi seul, jamais à l’antenne.</p>
+      {NOTE_SECTIONS.map(({ field, label, placeholder }) => (
+        <div className="field" key={field}>
+          <label htmlFor={`note-${field}`}>{label}</label>
+          <textarea id={`note-${field}`} rows={4} maxLength={20000} value={draft[field]} placeholder={placeholder}
+            onChange={(e) => {
+              const value = e.target.value;
+              setDraft((d) => ({ ...d, [field]: value }));
+            }} />
+        </div>
+      ))}
 
       <div className="sheet-row">
         <div className="field">

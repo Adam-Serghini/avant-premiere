@@ -70,7 +70,13 @@ describe('repo', () => {
       ['tmdb:1', 0, 'past'],
       ['tmdb:2', 1, 'next'],
     ]);
-    expect(e.films[0]).toMatchObject({ notes: '', score: null, trailerKey: 'frTrailer01' });
+    expect(e.films[0]).toMatchObject({
+      opinion: '',
+      anecdotes: '',
+      extendedUniverse: '',
+      score: null,
+      trailerKey: 'frTrailer01',
+    });
   });
 
   it('ignore un ajout en double', () => {
@@ -96,12 +102,19 @@ describe('repo', () => {
     expect(repo.removeFilm(DATE, 'tmdb:2').films).toHaveLength(2);
   });
 
-  it('modifie notes, note et bande-annonce', () => {
+  it('modifie les sections de notes, la note et la bande-annonce', () => {
     const repo = setup();
     repo.addFilm(DATE, 'tmdb:1', 'past');
-    repo.updateFilm(DATE, 'tmdb:1', { notes: 'Superbe', score: 8 });
+    repo.updateFilm(DATE, 'tmdb:1', { opinion: 'Superbe', anecdotes: 'Tourné en Islande', score: 8 });
+    repo.updateFilm(DATE, 'tmdb:1', { extendedUniverse: 'Roman de 1862' });
     const e = repo.updateFilm(DATE, 'tmdb:1', { trailerKey: 'enTrailer01' });
-    expect(e.films[0]).toMatchObject({ notes: 'Superbe', score: 8, trailerKey: 'enTrailer01' });
+    expect(e.films[0]).toMatchObject({
+      opinion: 'Superbe',
+      anecdotes: 'Tourné en Islande',
+      extendedUniverse: 'Roman de 1862',
+      score: 8,
+      trailerKey: 'enTrailer01',
+    });
     expect(repo.updateFilm(DATE, 'tmdb:1', { score: null }).films[0]!.score).toBeNull();
   });
 
@@ -110,7 +123,7 @@ describe('repo', () => {
     repo.addFilm(DATE, 'tmdb:1', 'past');
     expect(() => repo.updateFilm(DATE, 'tmdb:1', { score: 11 })).toThrow(/0 et 10/);
     expect(() => repo.updateFilm(DATE, 'tmdb:1', { score: 2.5 })).toThrow(RepoError);
-    expect(() => repo.updateFilm(DATE, 'tmdb:2', { notes: 'x' })).toThrow(RepoError);
+    expect(() => repo.updateFilm(DATE, 'tmdb:2', { opinion: 'x' })).toThrow(RepoError);
   });
 
   it('réordonne le conducteur', () => {

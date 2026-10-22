@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Emission, EmissionFilm, Period, Releases, ReleaseSummary } from '../../shared/types';
+import { hasPrivateContent } from '../../shared/notes';
 import { api, errorMessage } from '../api';
 import { AppHeader } from '../components/AppHeader';
 import { Grain } from '../components/Grain';
@@ -103,7 +104,7 @@ export function PrepPage() {
   }
 
   async function removeFilm(ef: EmissionFilm) {
-    const hasNotes = ef.notes.trim() !== '' || ef.score !== null;
+    const hasNotes = hasPrivateContent(ef);
     if (hasNotes && !window.confirm(`Retirer « ${ef.film.title} » du live ? Tes notes sur ce film seront perdues.`)) {
       return;
     }

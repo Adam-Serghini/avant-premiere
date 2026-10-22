@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 
 export type Db = Database.Database;
 
-const SCHEMA = `
+export const BASE_SCHEMA = `
 CREATE TABLE IF NOT EXISTS films (
   id TEXT PRIMARY KEY,
   source TEXT NOT NULL CHECK (source IN ('tmdb', 'manual')),
@@ -44,11 +44,39 @@ CREATE TABLE IF NOT EXISTS live_state (
 INSERT OR IGNORE INTO live_state (id) VALUES (1);
 `;
 
+type Migration = (db: Db) => void;
+
+/** Une entrée par version, dans l'ordre. Ne jamais modifier une migration déjà publiée : en ajouter une. */
+const MIGRATIONS: Migration[] = [
+  // 1. Notes en trois sections : l'ancien texte devient « Mon avis ».
+  (db) =>
+    db.exec(`
+      ALTER TABLE emission_films ADD COLUMN opinion TEXT NOT NULL DEFAULT '';
+      ALTER TABLE emission_films ADD COLUMN anecdotes TEXT NOT NULL DEFAULT '';
+      ALTER TABLE emission_films ADD COLUMN extended_universe TEXT NOT NULL DEFAULT '';
+      UPDATE emission_films SET opinion = notes;
+      ALTER TABLE emission_films DROP COLUMN notes;
+    `),
+];
+
+export const SCHEMA_VERSION = MIGRATIONS.length;
+
+function migrate(db: Db): void {
+  const current = db.pragma('user_version', { simple: true }) as number;
+  MIGRATIONS.slice(current).forEach((step, i) => {
+    db.transaction(() => {
+      step(db);
+      db.pragma(`user_version = ${current + i + 1}`);
+    })();
+  });
+}
+
 export function openDb(file: string): Db {
   if (file !== ':memory:') mkdirSync(dirname(file), { recursive: true });
   const db = new Database(file);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
-  db.exec(SCHEMA);
+  db.exec(BASE_SCHEMA);
+  migrate(db);
   return db;
 }

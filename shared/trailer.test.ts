@@ -9,7 +9,7 @@ const teaser: Trailer = { key: 'tz1', name: 'Teaser', lang: 'fr', type: 'Teaser'
 
 function ef(trailers: Trailer[], trailerKey: string | null): EmissionFilm {
   const film = { trailers } as Film;
-  return { film, position: 0, period: 'next', notes: '', score: null, trailerKey };
+  return { film, position: 0, period: 'next', opinion: '', anecdotes: '', extendedUniverse: '', score: null, trailerKey };
 }
 
 describe('bandes-annonces', () => {

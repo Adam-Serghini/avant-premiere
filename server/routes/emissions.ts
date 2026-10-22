@@ -18,7 +18,9 @@ const patchSchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    notes: { type: 'string', maxLength: 20000 },
+    opinion: { type: 'string', maxLength: 20000 },
+    anecdotes: { type: 'string', maxLength: 20000 },
+    extendedUniverse: { type: 'string', maxLength: 20000 },
     score: { type: ['integer', 'null'] },
     trailerKey: { type: ['string', 'null'], maxLength: 100 },
   },
