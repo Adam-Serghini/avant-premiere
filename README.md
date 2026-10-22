@@ -15,19 +15,28 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
 - **Préparation** (http://localhost:4321) :
   - cocher les films à traiter ;
   - les ordonner avec les flèches ;
-  - écrire ses notes, qui s'enregistrent automatiquement.
+  - écrire ses notes, qui s'enregistrent automatiquement ;
+  - pas sur TMDB ? créer la fiche à la main ; « Utiliser une autre affiche » et « Vidéo de l'ordinateur » ajoutent ses propres fichiers (rangés dans `data/media/`).
 - **Régie** (http://localhost:4321/regie) :
   - pendant le live, `→` et `←` changent de film ;
-  - les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer.
+  - les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer ;
+  - le bouton **Raccourcis** permet de changer les touches.
 
-## Configurer OBS
+## Intégrer à la scène React d'OBS
 
-1. Dans la scène du live, ajouter une source **Navigateur**.
-2. Renseigner :
+L'overlay se place dans le grand cadre de gauche de la scène **React**, au-dessus de la capture du bureau. Rien d'autre ne change dans les scènes.
+
+1. Lancer Avant-Première.
+2. Dans OBS, sélectionner la scène **React**, puis dans **Sources** : **+** → **Navigateur**. Nom : « Avant-Première ».
+3. Renseigner :
    - URL : `http://localhost:4321/overlay`
-   - Largeur `1920`, hauteur `1080`
-3. Cocher **Contrôler l'audio via OBS**, sinon le son des bandes-annonces ne passe pas dans le stream.
-4. Placer cette source au-dessus de la caméra. Son fond est transparent.
+   - Largeur `1250`, hauteur `725` (ajuster à la taille exacte du cadre)
+   - cocher **Contrôler l'audio via OBS**
+4. Dans la liste des sources, placer « Avant-Première » **au-dessus** de la capture du bureau.
+5. Dans l'aperçu, déplacer la source pour qu'elle recouvre exactement l'intérieur du cadre doré.
+6. Pour s'entendre pendant les tests : **Édition → Propriétés audio avancées**, ligne « Avant-Première », colonne **Monitoring audio** → **Monitoring et sortie**.
+
+En mode **Masqué**, l'overlay est transparent : le bureau réapparaît.
 
 ## Checklist avant le premier live
 
@@ -35,6 +44,7 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
 - [ ] En mode **Bande-annonce**, le son s'entend dans le moniteur audio d'OBS, et la fiche revient à la fin.
 - [ ] Après avoir fermé et rouvert OBS, l'affichage revient tout seul.
 - [ ] Après avoir fermé et relancé Avant-Première, la régie reprend sur le même film.
+- [ ] La fiche remplit exactement le cadre de gauche de la scène React.
 
 ## En cas de souci
 

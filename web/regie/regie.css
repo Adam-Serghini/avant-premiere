@@ -1,12 +1,12 @@
 .live-pill {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 2px;
-  background: var(--live); color: #eadcc2; font-family: var(--font-label); font-size: 18px;
-  letter-spacing: 0.16em; text-transform: uppercase;
+  background: var(--rec); color: #f3e9d6; font-family: var(--font-label); font-size: 15px; font-style: italic;
+  letter-spacing: 0.1em; text-transform: uppercase;
 }
-.live-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #eadcc2; }
+.live-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #f3e9d6; }
 .status-dot {
   display: inline-flex; align-items: center; gap: 8px; color: var(--text-2);
-  font-family: var(--font-label); font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: var(--font-label); font-size: 15px; font-style: italic; letter-spacing: 0.1em; text-transform: uppercase;
 }
 .status-dot::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #6e675c; }
 .status-dot.is-ok { color: var(--text); }
@@ -22,7 +22,7 @@
 }
 .steps button.is-done { color: var(--text-3); }
 .steps button[aria-current='step'] { background: var(--gold); border-color: var(--gold); color: var(--bg); }
-.steps .n { font-family: var(--font-display); font-size: 22px; }
+.steps .n { font-family: var(--font-display); font-weight: 600; font-size: 22px; }
 
 .regie-body { display: flex; flex-wrap: wrap; gap: 28px; align-items: stretch; }
 .on-air { flex: 999 1 560px; min-width: 0; }
@@ -30,10 +30,10 @@
 .on-air .poster { width: 200px; flex: none; align-self: flex-start; }
 .on-air-info { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 .on-air-info .kicker { font-size: 18px; color: var(--gold); }
-.on-air-info h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1.05; }
+.on-air-info h1 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 44px; line-height: 1.05; }
 .private-notes { margin-top: 8px; padding: 16px; background: var(--surface-2); border: 1px dashed var(--line); border-radius: 2px; }
 .private-notes .label { font-size: 16px; color: var(--text-2); }
-.private-note h2 { margin: 14px 0 0; font-size: 15px; font-weight: 400; color: var(--gold); }
+.private-notes .private-note h2 { margin: 14px 0 0; font-size: 15px; font-weight: 400; color: var(--gold); }
 .private-notes p { margin: 6px 0 0; white-space: pre-wrap; line-height: 1.5; }
 
 .controls { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
@@ -52,7 +52,7 @@ kbd { font-family: var(--font-label); font-size: 0.85em; padding: 0 6px; border:
 .shortcuts-dialog { width: min(560px, calc(100vw - 32px)); padding: 24px; background: var(--surface); color: var(--text); border: 1px solid var(--gold-dark); border-radius: 3px; }
 .shortcuts-dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
 .shortcuts-dialog .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-.shortcuts-dialog h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; color: var(--gold); }
+.shortcuts-dialog h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 26px; color: var(--gold); }
 .shortcut-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .shortcut-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .shortcut-list kbd { min-width: 44px; text-align: center; font-size: 18px; opacity: 1; }

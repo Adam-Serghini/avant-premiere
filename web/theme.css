@@ -5,22 +5,23 @@
   --poster: #29231a;
   --line: #3b3226;
   --line-2: #54472f;
-  --gold: #b59a5b;
-  --gold-light: #c4ad7a;
-  --gold-dark: #7d6a42;
+  --gold: #b69b64;
+  --gold-light: #cdb88a;
+  --gold-dark: #806c45;
+  --rec: #a8262c;
   --text: #e3d6bc;
   --text-2: #ae9f82;
   --text-3: #8c7e66;
   --live: #7a2a22;
   --error: #d98a7a;
   --camera: #3b3833;
-  --font-display: 'Limelight', serif;
-  --font-label: 'League Gothic', 'Arial Narrow', sans-serif;
-  --font-body: 'IM Fell English', Georgia, serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-label: 'Times New Roman', Tinos, Times, serif;
+  --font-body: 'Times New Roman', Tinos, Times, serif;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 17px; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 18px; }
 body.is-overlay { background: transparent; overflow: hidden; }
 a { color: var(--gold); }
 a:hover { color: var(--gold-light); }
@@ -29,7 +30,7 @@ button { cursor: pointer; }
 input[type='date'] { color-scheme: dark; }
 :focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
 
-.label { font-family: var(--font-label); text-transform: uppercase; letter-spacing: 0.12em; }
+.label { font-family: var(--font-label); font-style: italic; text-transform: uppercase; letter-spacing: 0.08em; }
 .hint { margin: 0; font-size: 15px; color: var(--text-2); }
 .empty { margin: 0; color: var(--text-2); font-style: italic; }
 .banner { padding: 12px 24px; background: var(--live); color: var(--text); text-align: center; }
@@ -37,7 +38,7 @@ input[type='date'] { color-scheme: dark; }
 .btn {
   min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: 1px solid var(--gold-dark); border-radius: 2px; background: transparent; color: var(--gold);
-  font-family: var(--font-label); font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: var(--font-label); font-style: italic; font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase;
 }
 .btn--primary, .btn[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 .btn--ghost { border-color: var(--line); color: var(--text); }
@@ -56,13 +57,14 @@ input[type='date'] { color-scheme: dark; }
   display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; justify-content: space-between;
 }
 .header-brand { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
-.logo { font-family: var(--font-display); font-size: 40px; color: var(--gold); letter-spacing: 2px; line-height: 1; }
+.logo { font-family: var(--font-display); font-weight: 600; font-size: 40px; color: var(--gold); letter-spacing: 0.5px; line-height: 1; }
+:where(.logo, h1, h2, h3, .poster-title) { font-variation-settings: 'SOFT' 100, 'WONK' 1; }
 @media (max-width: 480px) {
-  .app-header .logo { font-size: 30px; letter-spacing: 1px; }
+  .app-header .logo { font-size: 30px; letter-spacing: 0.5px; }
 }
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav a {
-  min-height: 44px; display: inline-flex; align-items: center; padding: 10px 18px; font-family: var(--font-label); font-size: 20px; letter-spacing: 0.1em; text-transform: uppercase;
+  min-height: 44px; display: inline-flex; align-items: center; padding: 10px 18px; font-family: var(--font-label); font-style: italic; font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase;
   text-decoration: none; color: var(--text); border: 1px solid var(--line); border-radius: 2px;
 }
 .nav a[aria-current='page'] { background: var(--gold); border-color: var(--gold); color: var(--bg); }
@@ -74,7 +76,13 @@ input[type='date'] { color-scheme: dark; }
 .poster-title { font-family: var(--font-display); font-size: 20px; line-height: 1.15; color: var(--gold-light); }
 .poster--empty.poster--small > * { display: none; }
 
-.panel { background: var(--surface); border: 1px solid var(--gold-dark); border-radius: 3px; padding: 6px; }
+.panel { position: relative; background: var(--surface); border: 1px solid var(--gold-dark); border-radius: 3px; padding: 6px; }
+/* Coins dorés en équerre, comme les cadres de la chaîne. */
+.panel::before, .panel::after {
+  content: ''; position: absolute; width: 18px; height: 18px; border: 0 solid var(--gold); pointer-events: none;
+}
+.panel::before { top: -4px; left: -4px; border-top-width: 2px; border-left-width: 2px; }
+.panel::after { bottom: -4px; right: -4px; border-bottom-width: 2px; border-right-width: 2px; }
 .panel-inner { border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
 .grain { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 50; }
