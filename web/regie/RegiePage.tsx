@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DisplayMode, LiveAction, LiveSnapshot } from '../../shared/types';
-import { effectiveTrailerKey } from '../../shared/trailer';
+import { displayPoster } from '../../shared/film';
+import { effectiveTrailer } from '../../shared/trailer';
 import { api, errorMessage } from '../api';
 import { AppHeader } from '../components/AppHeader';
 import { Grain } from '../components/Grain';
@@ -134,7 +135,7 @@ interface BoardProps {
 
 function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
   const { state, total, rundown, current } = snapshot;
-  const hasTrailer = current !== null && effectiveTrailerKey(current) !== null;
+  const hasTrailer = current !== null && effectiveTrailer(current) !== null;
 
   return (
     <>
@@ -155,7 +156,7 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
         {current && (
           <section className="panel on-air" aria-label="Film à l’antenne">
             <div className="panel-inner">
-              <Poster url={current.film.posterUrl} title={current.film.title} />
+              <Poster url={displayPoster(current.film)} title={current.film.title} />
               <div className="on-air-info">
                 <span className="label kicker">
                   Film {state.position + 1} sur {total} · {releaseKicker(current.period, current.film.releaseDateFr)}

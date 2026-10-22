@@ -4,9 +4,18 @@ export function defaultTrailerKey(trailers: Trailer[]): string | null {
   return (trailers.find((t) => t.lang === 'fr') ?? trailers[0])?.key ?? null;
 }
 
-export function effectiveTrailerKey(ef: EmissionFilm): string | null {
-  if (ef.trailerKey && ef.film.trailers.some((t) => t.key === ef.trailerKey)) return ef.trailerKey;
-  return defaultTrailerKey(ef.film.trailers);
+export const LOCAL_TRAILER = 'local';
+
+export type EffectiveTrailer = { kind: 'youtube'; key: string } | { kind: 'local'; url: string } | null;
+
+/** La bande-annonce qui passera : le choix enregistré s'il existe encore, sinon la vidéo locale, sinon la VF. */
+export function effectiveTrailer(ef: EmissionFilm): EffectiveTrailer {
+  const { film, trailerKey } = ef;
+  if (trailerKey === LOCAL_TRAILER && film.localTrailerUrl) return { kind: 'local', url: film.localTrailerUrl };
+  if (trailerKey && film.trailers.some((t) => t.key === trailerKey)) return { kind: 'youtube', key: trailerKey };
+  if (film.localTrailerUrl) return { kind: 'local', url: film.localTrailerUrl };
+  const key = defaultTrailerKey(film.trailers);
+  return key ? { kind: 'youtube', key } : null;
 }
 
 export function trailerLabel(t: Trailer): string {

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { effectiveTrailerKey } from '../../shared/trailer';
+import { effectiveTrailer } from '../../shared/trailer';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
 import { FullView } from './FullView';
 import { TrailerView } from './TrailerView';
@@ -19,13 +19,13 @@ export function OverlayPage() {
   if (!snapshot?.current || snapshot.state.mode === 'off') return null;
 
   const { current, state, total } = snapshot;
-  const trailerKey = effectiveTrailerKey(current);
+  const trailer = effectiveTrailer(current);
   const key = `${current.film.id}-${state.mode}`;
 
   return (
     <div className="overlay-stage" key={key}>
       {state.mode === 'full' && <FullView ef={current} position={state.position} total={total} />}
-      {state.mode === 'trailer' && trailerKey && <TrailerView videoId={trailerKey} preview={preview} />}
+      {state.mode === 'trailer' && trailer && <TrailerView trailer={trailer} preview={preview} />}
     </div>
   );
 }

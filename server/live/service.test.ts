@@ -74,6 +74,17 @@ describe('service du live', () => {
     expect(live.snapshot(false).state.mode).toBe('full');
   });
 
+  it('accepte une vidéo locale et quitte la bande-annonce quand on la retire', () => {
+    const { repo, live } = setup();
+    repo.setFilmMedia('tmdb:2', 'trailer', '/media/v.mp4');
+    live.apply({ type: 'start', airDate: DATE });
+    live.apply({ type: 'next' });
+    live.apply({ type: 'setMode', mode: 'trailer' });
+    expect(live.snapshot(false).state.mode).toBe('trailer');
+    repo.setFilmMedia('tmdb:2', 'trailer', null);
+    expect(live.snapshot(false).state.mode).toBe('full');
+  });
+
   it('recadre le film à l’antenne quand on le retire du conducteur', () => {
     const { repo, live } = setup();
     live.apply({ type: 'start', airDate: DATE });

@@ -1,4 +1,5 @@
 import type { EmissionFilm } from '../../shared/types';
+import { displayPoster } from '../../shared/film';
 import { Grain } from '../components/Grain';
 import { Poster } from '../components/Poster';
 import { releaseKicker, yearOf } from '../format';
@@ -23,7 +24,7 @@ export function FullView({ ef, position, total }: Props) {
       </div>
       <div className="ov-full-body">
         <div className="ov-full-poster">
-          <Poster url={film.posterUrl} title={film.title} />
+          <Poster url={displayPoster(film)} title={film.title} />
         </div>
         <div className="ov-full-info">
           <div className="ov-full-meta">

@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { EmissionFilm, Film, Trailer } from './types';
-import { defaultTrailerKey, effectiveTrailerKey, trailerLabel, trailerLabels } from './trailer';
+import { defaultTrailerKey, effectiveTrailer, trailerLabel, trailerLabels } from './trailer';
 
 const fr: Trailer = { key: 'fr1', name: 'Bande-annonce VF', lang: 'fr', type: 'Trailer' };
 const vost: Trailer = { key: 'vost1', name: 'Bande-annonce VOST', lang: 'fr', type: 'Trailer' };
 const en: Trailer = { key: 'en1', name: 'Official Trailer', lang: 'en', type: 'Trailer' };
 const teaser: Trailer = { key: 'tz1', name: 'Teaser', lang: 'fr', type: 'Teaser' };
 
-function ef(trailers: Trailer[], trailerKey: string | null): EmissionFilm {
-  const film = { trailers } as Film;
+function ef(trailers: Trailer[], trailerKey: string | null, localTrailerUrl: string | null = null): EmissionFilm {
+  const film = { trailers, localTrailerUrl } as Film;
   return { film, position: 0, period: 'next', opinion: '', anecdotes: '', extendedUniverse: '', score: null, trailerKey };
 }
 
@@ -19,10 +19,14 @@ describe('bandes-annonces', () => {
     expect(defaultTrailerKey([])).toBeNull();
   });
 
-  it('respecte le choix enregistré s’il existe encore', () => {
-    expect(effectiveTrailerKey(ef([fr, en], 'en1'))).toBe('en1');
-    expect(effectiveTrailerKey(ef([fr, en], 'disparue'))).toBe('fr1');
-    expect(effectiveTrailerKey(ef([], null))).toBeNull();
+  it('suit le choix enregistré, puis la vidéo locale, puis la VF', () => {
+    expect(effectiveTrailer(ef([fr, en], 'en1'))).toEqual({ kind: 'youtube', key: 'en1' });
+    expect(effectiveTrailer(ef([fr, en], 'disparue'))).toEqual({ kind: 'youtube', key: 'fr1' });
+    expect(effectiveTrailer(ef([], null))).toBeNull();
+    expect(effectiveTrailer(ef([fr], 'local', '/media/v.mp4'))).toEqual({ kind: 'local', url: '/media/v.mp4' });
+    expect(effectiveTrailer(ef([fr], 'fr1', '/media/v.mp4'))).toEqual({ kind: 'youtube', key: 'fr1' });
+    expect(effectiveTrailer(ef([fr], null, '/media/v.mp4'))).toEqual({ kind: 'local', url: '/media/v.mp4' });
+    expect(effectiveTrailer(ef([fr], 'local', null))).toEqual({ kind: 'youtube', key: 'fr1' });
   });
 
   it('donne un libellé court', () => {

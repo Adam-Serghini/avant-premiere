@@ -1,5 +1,5 @@
 import type { Emission, LiveAction, LiveSnapshot, LiveState } from '../../shared/types';
-import { effectiveTrailerKey } from '../../shared/trailer';
+import { effectiveTrailer } from '../../shared/trailer';
 import type { Repo } from '../repo';
 import { clamp, reduce, type LiveContext, type ReducerAction } from './reducer';
 
@@ -19,7 +19,7 @@ export function createLiveService(repo: Repo): LiveService {
       total: films.length,
       hasTrailerAt: (p) => {
         const ef = films[p];
-        return ef !== undefined && effectiveTrailerKey(ef) !== null;
+        return ef !== undefined && effectiveTrailer(ef) !== null;
       },
     };
   }

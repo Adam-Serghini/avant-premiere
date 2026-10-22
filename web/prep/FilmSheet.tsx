@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Emission, EmissionFilm } from '../../shared/types';
 import { NOTE_SECTIONS } from '../../shared/notes';
-import { effectiveTrailerKey, trailerLabels } from '../../shared/trailer';
+import { effectiveTrailer, LOCAL_TRAILER, trailerLabels } from '../../shared/trailer';
 import { api } from '../api';
 import { formatRuntime, parseScore, releaseKicker, yearOf } from '../format';
 import { useAutosave, type SaveStatus } from '../hooks/useAutosave';
@@ -34,7 +34,7 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
     onSaved(await api.patchFilm(airDate, film.id, d));
   });
   const labels = trailerLabels(film.trailers);
-  const currentTrailer = effectiveTrailerKey(ef);
+  const currentTrailer = effectiveTrailer(ef);
 
   async function chooseTrailer(key: string) {
     try {
@@ -86,16 +86,23 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onError }
         </div>
         <fieldset className="field">
           <legend>Bande-annonce</legend>
-          {film.trailers.length === 0 ? (
+          {film.trailers.length === 0 && !film.localTrailerUrl ? (
             <p className="hint">Aucune bande-annonce trouvée.</p>
           ) : (
             <div className="chips">
               {film.trailers.map((t, i) => (
                 <button key={t.key} type="button" className="btn" title={t.name}
-                  aria-pressed={t.key === currentTrailer} onClick={() => void chooseTrailer(t.key)}>
+                  aria-pressed={currentTrailer?.kind === 'youtube' && currentTrailer.key === t.key}
+                  onClick={() => void chooseTrailer(t.key)}>
                   {labels[i]}
                 </button>
               ))}
+              {film.localTrailerUrl && (
+                <button type="button" className="btn" aria-pressed={currentTrailer?.kind === 'local'}
+                  onClick={() => void chooseTrailer(LOCAL_TRAILER)}>
+                  Vidéo locale
+                </button>
+              )}
             </div>
           )}
         </fieldset>
