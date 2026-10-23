@@ -65,6 +65,6 @@ describe('migrations', () => {
       expect.arrayContaining(['opinion', 'anecdotes', 'extended_universe']),
     );
     expect(columns(db, 'settings')).toEqual(['key', 'value']);
-    expect(columns(db, 'films')).toEqual(expect.arrayContaining(['custom_poster', 'local_trailer']));
+    expect(columns(db, 'films')).toEqual(expect.arrayContaining(['custom_poster', 'local_trailer', 'overrides']));
   });
 });

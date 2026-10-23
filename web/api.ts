@@ -88,6 +88,7 @@ export const api = {
   search: (q: string) => call<ReleaseSummary[]>('GET', `/api/search?q=${enc(q)}`),
   createManual: (input: ManualFilmInput) => call<Film>('POST', '/api/films/manual', input),
   updateManual: (filmId: string, input: ManualFilmInput) => call<Film>('PUT', `/api/films/${enc(filmId)}`, input),
+  resetFilm: (filmId: string) => call<Film>('DELETE', `/api/films/${enc(filmId)}/overrides`),
   uploadPoster: (filmId: string, file: File) => upload(filmId, 'poster', file),
   uploadTrailer: (filmId: string, file: File) => upload(filmId, 'trailer', file),
   removePoster: (filmId: string) => call<Film>('DELETE', `/api/films/${enc(filmId)}/poster`),

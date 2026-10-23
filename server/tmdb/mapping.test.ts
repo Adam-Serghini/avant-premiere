@@ -41,6 +41,7 @@ describe('conversion TMDB', () => {
         { key: 'enTrailer01', name: 'Official Trailer', lang: 'en', type: 'Trailer' },
       ],
       fetchedAt: NOW,
+      editedFields: [],
     });
   });
 
@@ -61,6 +62,7 @@ describe('conversion TMDB', () => {
       synopsis: null,
       trailers: [],
       fetchedAt: NOW,
+      editedFields: [],
     });
   });
 

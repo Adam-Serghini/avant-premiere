@@ -12,7 +12,13 @@ interface Props {
   onCancel(): void;
 }
 
-const youtubeUrl = (film?: Film) => (film?.trailers[0] ? `https://youtu.be/${film.trailers[0].key}` : '');
+const youtubeUrl = (film?: Film) => {
+  // Fiche TMDB : seule la bande-annonce ajoutée par l’utilisateur (la dernière) est modifiable.
+  const trailer = film?.source === 'tmdb'
+    ? (film.editedFields.includes('extraTrailer') ? film.trailers.at(-1) : undefined)
+    : film?.trailers[0];
+  return trailer ? `https://youtu.be/${trailer.key}` : '';
+};
 
 export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancelLabel, onSaved, onCancel }: Props) {
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +27,7 @@ export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancel
   const saved = useRef<Film | null>(initial ?? null);
   const posterInput = useRef<HTMLInputElement>(null);
   const trailerInput = useRef<HTMLInputElement>(null);
+  const isTmdb = initial?.source === 'tmdb';
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,7 +41,7 @@ export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancel
     if (list('genres').length) input.genres = list('genres');
     if (text('runtimeMin')) input.runtimeMin = Number(text('runtimeMin'));
     if (text('synopsis')) input.synopsis = text('synopsis');
-    if (text('posterUrl')) input.posterUrl = text('posterUrl');
+    if (!isTmdb && text('posterUrl')) input.posterUrl = text('posterUrl');
     const posterFile = posterInput.current?.files?.[0];
     const trailerFile = trailerInput.current?.files?.[0];
     // La vidéo de l'ordinateur remplace le lien YouTube.
@@ -88,13 +95,17 @@ export function ManualFilmForm({ initial, initialTitle = '', submitLabel, cancel
           <textarea id="mf-synopsis" name="synopsis" rows={4} maxLength={5000} defaultValue={initial?.synopsis ?? ''} />
         </div>
         <div className="field">
-          <label htmlFor="mf-poster">Lien de l’affiche</label>
-          <input id="mf-poster" name="posterUrl" type="url" defaultValue={initial?.posterUrl ?? ''} />
+          {!isTmdb && (
+            <>
+              <label htmlFor="mf-poster">Lien de l’affiche</label>
+              <input id="mf-poster" name="posterUrl" type="url" defaultValue={initial?.posterUrl ?? ''} />
+            </>
+          )}
           <label htmlFor="mf-poster-file" className="field-sub">Ou une image de l’ordinateur (jpg, png, webp)</label>
           <input id="mf-poster-file" ref={posterInput} type="file" accept="image/jpeg,image/png,image/webp" />
         </div>
         <div className="field">
-          <label htmlFor="mf-trailer">Lien YouTube de la bande-annonce</label>
+          <label htmlFor="mf-trailer">{isTmdb ? 'Ajouter une bande-annonce YouTube' : 'Lien YouTube de la bande-annonce'}</label>
           <input id="mf-trailer" name="trailerUrl" type="url" defaultValue={youtubeUrl(initial)} />
           <label htmlFor="mf-trailer-file" className="field-sub">Ou une vidéo de l’ordinateur (mp4, webm)</label>
           <input id="mf-trailer-file" ref={trailerInput} type="file" accept="video/mp4,video/webm" />

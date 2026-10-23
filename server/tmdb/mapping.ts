@@ -77,5 +77,6 @@ export function toFilm(d: TmdbDetails, fetchedAt: string): Film {
     synopsis: d.overview?.trim() || null,
     trailers: trailersOf(d),
     fetchedAt,
+    editedFields: [],
   };
 }

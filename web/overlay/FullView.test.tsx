@@ -8,7 +8,7 @@ const film = {
   id: 'manual:1', source: 'manual', title: 'Le Corset', originalTitle: null, releaseDateFr: '2026-10-15',
   posterUrl: 'https://tmdb/a.jpg', customPosterUrl: '/media/b.jpg', localTrailerUrl: null,
   directors: ['Louis Clichy'], cast: ['Gary Clichy', 'Rod Paradot'], genres: ['Animation'], runtimeMin: 81,
-  synopsis: 'Un résumé.', trailers: [], fetchedAt: null,
+  synopsis: 'Un résumé.', trailers: [], fetchedAt: null, editedFields: [],
 } as Film;
 const ef = { film, position: 1, period: 'next', opinion: 'privé', anecdotes: '', extendedUniverse: '', score: 9, trailerKey: null } as EmissionFilm;
 

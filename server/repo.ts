@@ -1,6 +1,7 @@
-import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, LiveState, Period } from '../shared/types';
+import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Period } from '../shared/types';
 import { defaultTrailerKey } from '../shared/trailer';
 import type { Db } from './db';
+import { applyOverrides, diffOverrides, parseOverrides } from './overrides';
 import type { MediaKind } from './media';
 
 export class RepoError extends Error {
@@ -17,6 +18,9 @@ export interface Repo {
   upsertFilm(film: Film): void;
   getFilm(id: string): Film | null;
   setFilmMedia(filmId: string, kind: MediaKind, url: string | null): Film;
+  /** Enregistre les corrections qui diffèrent des infos de base ; les valeurs identiques à la base sont abandonnées. */
+  editFilm(filmId: string, candidate: FilmOverrides): Film;
+  clearFilmOverrides(filmId: string): Film;
   getEmission(airDate: string): Emission;
   getEmissionById(id: number): Emission | null;
   addFilm(airDate: string, filmId: string, period: Period): Emission;
@@ -45,6 +49,7 @@ interface FilmRow {
   synopsis: string | null;
   trailers: string;
   fetched_at: string | null;
+  overrides: string;
 }
 
 interface EmissionFilmRow extends FilmRow {
@@ -66,7 +71,7 @@ interface LiveRow {
   air_date: string | null;
 }
 
-function filmFromRow(r: FilmRow): Film {
+function baseFilmFromRow(r: FilmRow): Film {
   return {
     id: r.id,
     source: r.source,
@@ -83,7 +88,12 @@ function filmFromRow(r: FilmRow): Film {
     synopsis: r.synopsis,
     trailers: JSON.parse(r.trailers) as Film['trailers'],
     fetchedAt: r.fetched_at,
+    editedFields: [],
   };
+}
+
+function filmFromRow(r: FilmRow): Film {
+  return applyOverrides(baseFilmFromRow(r), parseOverrides(r.overrides));
 }
 
 function emissionFilmFromRow(r: EmissionFilmRow): EmissionFilm {
@@ -112,6 +122,7 @@ export function createRepo(db: Db): Repo {
     getFilm: db.prepare('SELECT * FROM films WHERE id = ?'),
     setPoster: db.prepare('UPDATE films SET custom_poster = ? WHERE id = ?'),
     setTrailer: db.prepare('UPDATE films SET local_trailer = ? WHERE id = ?'),
+    setOverrides: db.prepare('UPDATE films SET overrides = ? WHERE id = ?'),
     insertEmission: db.prepare('INSERT OR IGNORE INTO emissions (air_date, created_at) VALUES (?, ?)'),
     emissionByDate: db.prepare('SELECT id FROM emissions WHERE air_date = ?'),
     emissionById: db.prepare('SELECT id, air_date FROM emissions WHERE id = ?'),
@@ -230,6 +241,16 @@ export function createRepo(db: Db): Repo {
     setFilmMedia(filmId, kind, url) {
       const result = (kind === 'poster' ? q.setPoster : q.setTrailer).run(url, filmId);
       if (result.changes === 0) throw new RepoError('not_found', 'Film inconnu.');
+      return filmFromRow(q.getFilm.get(filmId) as FilmRow);
+    },
+    editFilm(filmId, candidate) {
+      const row = q.getFilm.get(filmId) as FilmRow | undefined;
+      if (!row) throw new RepoError('not_found', 'Film inconnu.');
+      q.setOverrides.run(JSON.stringify(diffOverrides(baseFilmFromRow(row), candidate)), filmId);
+      return filmFromRow(q.getFilm.get(filmId) as FilmRow);
+    },
+    clearFilmOverrides(filmId) {
+      if (q.setOverrides.run('{}', filmId).changes === 0) throw new RepoError('not_found', 'Film inconnu.');
       return filmFromRow(q.getFilm.get(filmId) as FilmRow);
     },
     getEmission: (airDate) => load(emissionId(airDate))!,

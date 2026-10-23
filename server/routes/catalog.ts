@@ -73,6 +73,7 @@ function buildManualFilm(input: ManualFilmInput, id: string = `manual:${randomUU
     synopsis: input.synopsis?.trim() || null,
     trailers,
     fetchedAt: null,
+    editedFields: [],
   };
 }
 
@@ -125,12 +126,33 @@ export function registerCatalogRoutes(app: FastifyInstance, ctx: AppContext): vo
     const { filmId } = req.params as { filmId: string };
     const existing = ctx.repo.getFilm(filmId);
     if (!existing) throw new RepoError('not_found', 'Film inconnu.');
-    if (existing.source !== 'manual') {
-      throw new HttpError(400, 'not_manual', 'Seules les fiches créées à la main peuvent être modifiées.');
+    const built = buildManualFilm(req.body as ManualFilmInput, filmId);
+    if (existing.source === 'manual') {
+      ctx.repo.upsertFilm(built);
+      ctx.hub.broadcast();
+      return ctx.repo.getFilm(filmId);
     }
-    ctx.repo.upsertFilm(buildManualFilm(req.body as ManualFilmInput, filmId));
+    // Fiche TMDB : seules les différences avec TMDB sont gardées, et elles survivent à l’actualisation.
+    const trailer = built.trailers[0];
+    const film = ctx.repo.editFilm(filmId, {
+      title: built.title,
+      releaseDateFr: built.releaseDateFr,
+      directors: built.directors,
+      cast: built.cast,
+      genres: built.genres,
+      runtimeMin: built.runtimeMin,
+      synopsis: built.synopsis,
+      extraTrailer: trailer && { key: trailer.key, name: 'Bande-annonce ajoutée', lang: 'fr', type: 'Trailer' },
+    });
     ctx.hub.broadcast();
-    return ctx.repo.getFilm(filmId);
+    return film;
+  });
+
+  app.delete('/api/films/:filmId/overrides', async (req) => {
+    const { filmId } = req.params as { filmId: string };
+    const film = ctx.repo.clearFilmOverrides(filmId);
+    ctx.hub.broadcast();
+    return film;
   });
 
   app.post('/api/films/:filmId/refresh', async (req) => {

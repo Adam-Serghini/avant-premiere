@@ -170,12 +170,80 @@ describe('API catalogue', () => {
     });
   });
 
-  it('refuse de modifier une fiche TMDB ou inconnue, et une durée invalide', async () => {
+  describe('fiche TMDB corrigée', () => {
+    const url = '/api/films/tmdb%3A1001';
+    async function setup() {
+      const ctx = await makeApp();
+      const base = (await ctx.app.inject({ method: 'POST', url: `${url}/refresh` })).json() as Film;
+      const payload = {
+        title: base.title, releaseDateFr: base.releaseDateFr ?? undefined, directors: base.directors, cast: base.cast,
+        genres: base.genres, runtimeMin: base.runtimeMin ?? undefined, synopsis: base.synopsis ?? undefined,
+      };
+      return { ...ctx, base, payload };
+    }
+
+    it('modifie le titre et les acteurs, et le dit', async () => {
+      const { app, base, payload } = await setup();
+      const res = await app.inject({ method: 'PUT', url, payload: { ...payload, title: ' Titre corrigé ', cast: ['Иван', 'Anna'] } });
+      expect(res.statusCode).toBe(200);
+      const film = res.json() as Film;
+      expect(film).toMatchObject({ title: 'Titre corrigé', cast: ['Иван', 'Anna'], source: 'tmdb' });
+      expect(film.editedFields).toEqual(['title', 'cast']);
+      expect(film.directors).toEqual(base.directors);
+    });
+
+    it('survit à l’actualisation', async () => {
+      const { app, payload } = await setup();
+      await app.inject({ method: 'PUT', url, payload: { ...payload, cast: ['Anna'] } });
+      const refreshed = (await app.inject({ method: 'POST', url: `${url}/refresh` })).json() as Film;
+      expect(refreshed.cast).toEqual(['Anna']);
+      expect(refreshed.editedFields).toEqual(['cast']);
+    });
+
+    it('ne retient rien quand les valeurs sont inchangées', async () => {
+      const { app, payload } = await setup();
+      const res = await app.inject({ method: 'PUT', url, payload });
+      expect((res.json() as Film).editedFields).toEqual([]);
+    });
+
+    it('ajoute une bande-annonce YouTube', async () => {
+      const { app, payload } = await setup();
+      const film = (await app.inject({ method: 'PUT', url, payload: { ...payload, trailerUrl: 'https://youtu.be/dQw4w9WgXcQ' } })).json() as Film;
+      expect(film.trailers.at(-1)).toEqual({ key: 'dQw4w9WgXcQ', name: 'Bande-annonce ajoutée', lang: 'fr', type: 'Trailer' });
+      expect(film.editedFields).toEqual(['extraTrailer']);
+    });
+
+    it('valide les champs comme pour une fiche manuelle', async () => {
+      const { app, payload } = await setup();
+      const res = await app.inject({ method: 'PUT', url, payload: { ...payload, trailerUrl: 'https://vimeo.com/1' } });
+      expect(res.json()).toMatchObject({ error: 'invalid_trailer' });
+    });
+
+    it('ignore le lien d’affiche', async () => {
+      const { app, base, payload } = await setup();
+      const film = (await app.inject({ method: 'PUT', url, payload: { ...payload, posterUrl: 'https://x.test/a.jpg' } })).json() as Film;
+      expect(film.posterUrl).toBe(base.posterUrl);
+    });
+
+    it('revient aux infos TMDB et diffuse', async () => {
+      const { app, base, payload } = await setup();
+      await app.inject({ method: 'PUT', url, payload: { ...payload, title: 'Autre' } });
+      const spy = vi.spyOn(LiveHub.prototype, 'broadcast');
+      const res = await app.inject({ method: 'DELETE', url: `${url}/overrides` });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(base);
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('répond 404 pour une fiche inconnue', async () => {
+      const { app } = await makeApp();
+      expect((await app.inject({ method: 'DELETE', url: '/api/films/tmdb%3A404/overrides' })).statusCode).toBe(404);
+      expect((await app.inject({ method: 'PUT', url: '/api/films/tmdb%3A404', payload: { title: 'X' } })).statusCode).toBe(404);
+    });
+  });
+
+  it('refuse de modifier une fiche inconnue, et une durée invalide', async () => {
     const { app } = await makeApp();
-    await app.inject({ method: 'POST', url: '/api/films/tmdb%3A1001/refresh' });
-    const tmdbEdit = await app.inject({ method: 'PUT', url: '/api/films/tmdb%3A1001', payload: { title: 'X' } });
-    expect(tmdbEdit.statusCode).toBe(400);
-    expect(tmdbEdit.json()).toMatchObject({ error: 'not_manual' });
     expect((await app.inject({ method: 'PUT', url: '/api/films/manual%3Aabsent', payload: { title: 'X' } })).statusCode).toBe(404);
     const post = (payload: object) => app.inject({ method: 'POST', url: '/api/films/manual', payload });
     expect((await post({ title: 'X', runtimeMin: 0 })).statusCode).toBe(400);

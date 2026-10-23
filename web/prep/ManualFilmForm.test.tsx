@@ -83,4 +83,37 @@ describe('formulaire de fiche', () => {
     expect(api.updateManual).toHaveBeenCalledWith('manual:1', expect.objectContaining({ title: 'NASA', runtimeMin: 92 }));
     expect(api.createManual).not.toHaveBeenCalled();
   });
+
+  describe('fiche TMDB', () => {
+    const tmdb = {
+      ...film, id: 'tmdb:1', source: 'tmdb', posterUrl: 'https://image.tmdb.org/p.jpg', editedFields: [],
+      trailers: [{ key: 'enTrailer01', name: 'Trailer', lang: 'en', type: 'Trailer' }],
+    } as unknown as Film;
+
+    it('masque le lien d’affiche et propose d’ajouter une bande-annonce', () => {
+      render(<ManualFilmForm {...props} initial={tmdb} onSaved={vi.fn()} />);
+      expect(screen.queryByLabelText('Lien de l’affiche')).toBeNull();
+      expect(screen.getByLabelText(/Ou une image de l’ordinateur/)).toBeTruthy();
+      expect((screen.getByLabelText('Ajouter une bande-annonce YouTube') as HTMLInputElement).value).toBe('');
+      expect(screen.queryByLabelText(/Lien YouTube de la bande-annonce/)).toBeNull();
+    });
+
+    it('préremplit la bande-annonce ajoutée', () => {
+      const edited = {
+        ...tmdb, editedFields: ['extraTrailer'],
+        trailers: [...tmdb.trailers, { key: 'zzz', name: 'Bande-annonce ajoutée', lang: 'fr', type: 'Trailer' }],
+      } as Film;
+      render(<ManualFilmForm {...props} initial={edited} onSaved={vi.fn()} />);
+      expect((screen.getByLabelText('Ajouter une bande-annonce YouTube') as HTMLInputElement).value).toBe('https://youtu.be/zzz');
+    });
+
+    it('n’envoie pas de lien d’affiche', async () => {
+      vi.mocked(api.updateManual).mockResolvedValue(tmdb);
+      const onSaved = vi.fn();
+      render(<ManualFilmForm {...props} submitLabel="Enregistrer" initial={tmdb} onSaved={onSaved} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+      await waitFor(() => expect(onSaved).toHaveBeenCalled());
+      expect(vi.mocked(api.updateManual).mock.calls[0]![1]).not.toHaveProperty('posterUrl');
+    });
+  });
 });

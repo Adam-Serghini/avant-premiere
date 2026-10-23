@@ -79,6 +79,8 @@ const MIGRATIONS: Migration[] = [
       ALTER TABLE films ADD COLUMN custom_poster TEXT;
       ALTER TABLE films ADD COLUMN local_trailer TEXT;
     `),
+  // 5. Corrections de l’utilisateur sur les fiches TMDB (JSON, jamais écrasé par une actualisation).
+  (db) => db.exec(`ALTER TABLE films ADD COLUMN overrides TEXT NOT NULL DEFAULT '{}'`),
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -26,6 +26,7 @@ function film(id: string, overrides: Partial<Film> = {}): Film {
       { key: 'frTrailer01', name: 'Bande-annonce', lang: 'fr', type: 'Trailer' },
     ],
     fetchedAt: '2026-10-07T10:00:00.000Z',
+    editedFields: [],
     ...overrides,
   };
 }
@@ -171,5 +172,69 @@ describe('repo', () => {
       localTrailerUrl: '/media/b.mp4',
     });
     expect(() => repo.setFilmMedia('tmdb:404', 'poster', null)).toThrow(RepoError);
+  });
+});
+
+describe('corrections de fiche', () => {
+  const extra = { key: 'zzz', name: 'Bande-annonce ajoutée', lang: 'fr', type: 'Trailer' } as const;
+  const candidate = (f: Film, o: Record<string, unknown> = {}) => ({
+    title: f.title, releaseDateFr: f.releaseDateFr, directors: f.directors, cast: f.cast, genres: f.genres,
+    runtimeMin: f.runtimeMin, synopsis: f.synopsis, extraTrailer: undefined, ...o,
+  });
+
+  it('applique une correction sur la fiche TMDB', () => {
+    const repo = setup();
+    const edited = repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['Иван Иванов'] }));
+    expect(edited.cast).toEqual(['Иван Иванов']);
+    expect(edited.editedFields).toEqual(['cast']);
+    expect(repo.getFilm('tmdb:1')).toEqual(edited);
+    expect(repo.getFilm('tmdb:2')?.editedFields).toEqual([]);
+  });
+
+  it('garde la correction quand TMDB actualise la fiche', () => {
+    const repo = setup();
+    repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['Ivan Ivanov'] }));
+    repo.upsertFilm(film('tmdb:1', { synopsis: 'Nouveau résumé', cast: ['Иван'] }));
+    const f = repo.getFilm('tmdb:1')!;
+    expect(f.synopsis).toBe('Nouveau résumé');
+    expect(f.cast).toEqual(['Ivan Ivanov']);
+    expect(f.editedFields).toEqual(['cast']);
+  });
+
+  it('retire la correction quand la valeur revient à celle de TMDB', () => {
+    const repo = setup();
+    repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['B'], title: 'T' }));
+    const f = repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['Acteur A'], title: 'T' }));
+    expect(f.cast).toEqual(['Acteur A']);
+    expect(f.editedFields).toEqual(['title']);
+  });
+
+  it('ajoute la bande-annonce saisie sans doublon', () => {
+    const repo = setup();
+    const f = repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { extraTrailer: extra }));
+    expect(f.trailers.map((t) => t.key)).toEqual(['enTrailer01', 'frTrailer01', 'zzz']);
+    expect(f.editedFields).toEqual(['extraTrailer']);
+    repo.upsertFilm(film('tmdb:1', { trailers: [...film('tmdb:1').trailers, { ...extra }] }));
+    expect(repo.getFilm('tmdb:1')?.trailers.map((t) => t.key)).toEqual(['enTrailer01', 'frTrailer01', 'zzz']);
+  });
+
+  it('efface les corrections', () => {
+    const repo = setup();
+    repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['B'], extraTrailer: extra }));
+    expect(repo.clearFilmOverrides('tmdb:1')).toEqual(film('tmdb:1'));
+  });
+
+  it('signale une fiche inconnue', () => {
+    const repo = setup();
+    expect(() => repo.editFilm('tmdb:404', candidate(film('tmdb:1')))).toThrow(RepoError);
+    expect(() => repo.clearFilmOverrides('tmdb:404')).toThrow(RepoError);
+  });
+
+  it('ignore des corrections illisibles', () => {
+    const db = openDb(':memory:');
+    const repo = createRepo(db);
+    repo.upsertFilm(film('tmdb:1'));
+    db.prepare("UPDATE films SET overrides = '{pas du json' WHERE id = 'tmdb:1'").run();
+    expect(repo.getFilm('tmdb:1')).toEqual(film('tmdb:1'));
   });
 });

@@ -48,6 +48,16 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
     }
   }
 
+  async function resetFilm() {
+    if (!window.confirm('Effacer tes corrections et revenir aux infos de TMDB ?')) return;
+    try {
+      await api.resetFilm(film.id);
+      onFilmChanged();
+    } catch (e) {
+      onError(e);
+    }
+  }
+
   const meta = [
     film.genres.slice(0, 2).join(', '),
     yearOf(film.releaseDateFr),
@@ -117,12 +127,14 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
       <p className={`save-status${status === 'error' ? ' is-error' : ''}`} aria-live="polite">
         {status === 'error' && errorMessage ? `Non enregistré : ${errorMessage}` : STATUS_TEXT[status]}
       </p>
+      {film.source === 'tmdb' && film.editedFields.length > 0 && <p className="hint">Fiche corrigée par toi</p>}
       <div className="toolbar-actions">
         {film.source === 'tmdb' && (
           <button type="button" className="btn btn--ghost" onClick={onRefresh}>Actualiser la fiche</button>
         )}
-        {film.source === 'manual' && (
-          <button type="button" className="btn btn--ghost" onClick={() => setEditing(true)}>Modifier la fiche</button>
+        <button type="button" className="btn btn--ghost" onClick={() => setEditing(true)}>Modifier la fiche</button>
+        {film.source === 'tmdb' && film.editedFields.length > 0 && (
+          <button type="button" className="btn btn--ghost" onClick={() => void resetFilm()}>Revenir aux infos TMDB</button>
         )}
         <button type="button" className="btn btn--ghost" onClick={onRemove}>Retirer du live</button>
       </div>

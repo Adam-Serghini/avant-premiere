@@ -14,6 +14,28 @@ export interface Trailer {
   type: 'Trailer' | 'Teaser';
 }
 
+export type EditableField =
+  | 'title'
+  | 'releaseDateFr'
+  | 'directors'
+  | 'cast'
+  | 'genres'
+  | 'runtimeMin'
+  | 'synopsis'
+  | 'extraTrailer';
+
+/** Corrections de l’utilisateur sur une fiche TMDB ; chaque champ présent remplace la valeur de TMDB. */
+export interface FilmOverrides {
+  title?: string;
+  releaseDateFr?: string | null;
+  directors?: string[];
+  cast?: string[];
+  genres?: string[];
+  runtimeMin?: number | null;
+  synopsis?: string | null;
+  extraTrailer?: Trailer;
+}
+
 export interface Film {
   id: string;
   source: 'tmdb' | 'manual';
@@ -32,6 +54,8 @@ export interface Film {
   synopsis: string | null;
   trailers: Trailer[];
   fetchedAt: string | null;
+  /** Champs corrigés par l’utilisateur (fiche TMDB) ; toujours vide pour une fiche manuelle. */
+  editedFields: EditableField[];
 }
 
 export interface ReleaseSummary {
