@@ -25,9 +25,16 @@
 }
 .period-head .rule { flex: 1; height: 1px; background: var(--line); }
 .period-head .count { font-size: 15px; color: var(--text-2); white-space: nowrap; }
-.release-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+.carousel-nav { display: flex; gap: 6px; flex: none; }
+/* Une seule rangée qui défile ; l'arrêt se cale sur le bord d'une carte. */
+.release-track {
+  list-style: none; margin: 0; padding: 0 0 12px; display: grid; grid-auto-flow: column; grid-auto-columns: 170px;
+  gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 2px;
+  scrollbar-color: var(--line-2) transparent;
+}
+.release-track > li { scroll-snap-align: start; display: flex; }
 .release-card {
-  display: flex; flex-direction: column; gap: 10px; padding: 10px; cursor: pointer;
+  flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 10px; cursor: pointer;
   background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px;
 }
 .release-card.is-on { border-color: var(--gold); }
