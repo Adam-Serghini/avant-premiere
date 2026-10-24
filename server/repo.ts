@@ -1,5 +1,5 @@
 import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Period } from '../shared/types';
-import { defaultTrailerKey } from '../shared/trailer';
+import { defaultTrailerKey, selectTrailers } from '../shared/trailer';
 import type { Db } from './db';
 import { applyOverrides, diffOverrides, parseOverrides } from './overrides';
 import type { MediaKind } from './media';
@@ -86,7 +86,8 @@ function baseFilmFromRow(r: FilmRow): Film {
     genres: JSON.parse(r.genres) as string[],
     runtimeMin: r.runtime_min,
     synopsis: r.synopsis,
-    trailers: JSON.parse(r.trailers) as Film['trailers'],
+    // Tri à la lecture : les fiches déjà enregistrées en profitent sans actualisation.
+    trailers: selectTrailers(JSON.parse(r.trailers) as Film['trailers']),
     fetchedAt: r.fetched_at,
     editedFields: [],
   };

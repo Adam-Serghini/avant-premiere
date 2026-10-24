@@ -1,5 +1,14 @@
 import type { EmissionFilm, Trailer } from './types';
 
+const isFrench = (t: Trailer) => t.lang === 'fr' || /vost/i.test(t.name);
+
+/** Bandes-annonces proposées : la VF et la VOST seulement, ou la VO en secours ; jamais les teasers. */
+export function selectTrailers(trailers: Trailer[]): Trailer[] {
+  const full = trailers.filter((t) => t.type === 'Trailer');
+  const french = full.filter(isFrench);
+  return french.length > 0 ? french : full;
+}
+
 export function defaultTrailerKey(trailers: Trailer[]): string | null {
   return (trailers.find((t) => t.lang === 'fr') ?? trailers[0])?.key ?? null;
 }

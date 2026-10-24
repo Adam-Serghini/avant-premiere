@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { selectTrailers } from '../shared/trailer';
 import type { Film } from '../shared/types';
 import { openDb } from './db';
 import { createRepo, RepoError, type Repo } from './repo';
@@ -31,6 +32,9 @@ function film(id: string, overrides: Partial<Film> = {}): Film {
   };
 }
 
+/** La fiche telle que le repo la rend : la VO s'efface quand une VF existe. */
+const shown = (f: Film): Film => ({ ...f, trailers: selectTrailers(f.trailers) });
+
 const DATE = '2026-10-13';
 
 function setup(): Repo {
@@ -50,7 +54,7 @@ describe('repo', () => {
 
   it('enregistre et met à jour une fiche', () => {
     const repo = setup();
-    expect(repo.getFilm('tmdb:1')).toEqual(film('tmdb:1'));
+    expect(repo.getFilm('tmdb:1')).toEqual(shown(film('tmdb:1')));
     repo.upsertFilm(film('tmdb:1', { title: 'Nouveau titre' }));
     expect(repo.getFilm('tmdb:1')?.title).toBe('Nouveau titre');
     expect(repo.getFilm('tmdb:404')).toBeNull();
@@ -212,16 +216,16 @@ describe('corrections de fiche', () => {
   it('ajoute la bande-annonce saisie sans doublon', () => {
     const repo = setup();
     const f = repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { extraTrailer: extra }));
-    expect(f.trailers.map((t) => t.key)).toEqual(['enTrailer01', 'frTrailer01', 'zzz']);
+    expect(f.trailers.map((t) => t.key)).toEqual(['frTrailer01', 'zzz']);
     expect(f.editedFields).toEqual(['extraTrailer']);
     repo.upsertFilm(film('tmdb:1', { trailers: [...film('tmdb:1').trailers, { ...extra }] }));
-    expect(repo.getFilm('tmdb:1')?.trailers.map((t) => t.key)).toEqual(['enTrailer01', 'frTrailer01', 'zzz']);
+    expect(repo.getFilm('tmdb:1')?.trailers.map((t) => t.key)).toEqual(['frTrailer01', 'zzz']);
   });
 
   it('efface les corrections', () => {
     const repo = setup();
     repo.editFilm('tmdb:1', candidate(film('tmdb:1'), { cast: ['B'], extraTrailer: extra }));
-    expect(repo.clearFilmOverrides('tmdb:1')).toEqual(film('tmdb:1'));
+    expect(repo.clearFilmOverrides('tmdb:1')).toEqual(shown(film('tmdb:1')));
   });
 
   it('signale une fiche inconnue', () => {
@@ -235,6 +239,6 @@ describe('corrections de fiche', () => {
     const repo = createRepo(db);
     repo.upsertFilm(film('tmdb:1'));
     db.prepare("UPDATE films SET overrides = '{pas du json' WHERE id = 'tmdb:1'").run();
-    expect(repo.getFilm('tmdb:1')).toEqual(film('tmdb:1'));
+    expect(repo.getFilm('tmdb:1')).toEqual(shown(film('tmdb:1')));
   });
 });

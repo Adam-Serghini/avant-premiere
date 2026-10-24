@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EmissionFilm, Film, Trailer } from './types';
-import { defaultTrailerKey, effectiveTrailer, trailerLabel, trailerLabels } from './trailer';
+import { defaultTrailerKey, effectiveTrailer, selectTrailers, trailerLabel, trailerLabels } from './trailer';
 
 const fr: Trailer = { key: 'fr1', name: 'Bande-annonce VF', lang: 'fr', type: 'Trailer' };
 const vost: Trailer = { key: 'vost1', name: 'Bande-annonce VOST', lang: 'fr', type: 'Trailer' };
@@ -13,6 +13,23 @@ function ef(trailers: Trailer[], trailerKey: string | null, localTrailerUrl: str
 }
 
 describe('bandes-annonces', () => {
+  it('ne garde que la VF et la VOST quand il y en a, jamais les teasers', () => {
+    const enTeaser: Trailer = { key: 'tz2', name: 'Teaser', lang: 'en', type: 'Teaser' };
+    expect(selectTrailers([en, fr, teaser, vost, enTeaser])).toEqual([fr, vost]);
+  });
+
+  it('reconnaît une VOST à son nom, même mal étiquetée', () => {
+    const vostEn: Trailer = { key: 'vost2', name: 'Bande-annonce VOSTFR', lang: 'en', type: 'Trailer' };
+    expect(selectTrailers([en, vostEn])).toEqual([vostEn]);
+  });
+
+  it('garde la VO en secours, sauf les teasers', () => {
+    const enTeaser: Trailer = { key: 'tz2', name: 'Teaser', lang: 'en', type: 'Teaser' };
+    expect(selectTrailers([en, enTeaser])).toEqual([en]);
+    expect(selectTrailers([teaser, enTeaser])).toEqual([]);
+    expect(selectTrailers([])).toEqual([]);
+  });
+
   it('choisit la première VF par défaut, sinon la première disponible', () => {
     expect(defaultTrailerKey([en, fr])).toBe('fr1');
     expect(defaultTrailerKey([en])).toBe('en1');
