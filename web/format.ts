@@ -1,4 +1,4 @@
-import type { Period } from '../shared/types';
+import type { Period, Ratings } from '../shared/types';
 
 const MONTH = new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'UTC' });
 const WEEKDAY = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'UTC' });
@@ -28,6 +28,18 @@ export function formatRuntime(min: number | null): string {
   const h = Math.floor(min / 60);
   const m = min % 60;
   return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
+}
+
+/** « IMDb 7,4 · Rotten Tomatoes 85 % · Metacritic 72 », seulement les notes connues. */
+export function formatRatings(r: Ratings | null): string {
+  if (!r) return '';
+  return [
+    r.imdb !== null && `IMDb ${r.imdb.toFixed(1).replace('.', ',')}`,
+    r.rottenTomatoes !== null && `Rotten Tomatoes ${r.rottenTomatoes} %`,
+    r.metacritic !== null && `Metacritic ${r.metacritic}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 export function yearOf(iso: string | null): string {

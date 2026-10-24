@@ -31,6 +31,7 @@
 .ov-credits dt { font-style: italic; color: var(--gold); }
 .ov-credits dd { margin: 0; }
 .ov-meta { margin: 0; font-size: 1.9vw; color: var(--text-2); }
+.ov-ratings { margin: 0; font-style: italic; color: var(--gold); font-size: 2vw; }
 .ov-synopsis {
   margin: 0; font-size: 1.9vw; line-height: 1.45; font-style: italic; color: var(--text-2);
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;

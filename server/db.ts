@@ -81,6 +81,12 @@ const MIGRATIONS: Migration[] = [
     `),
   // 5. Corrections de l’utilisateur sur les fiches TMDB (JSON, jamais écrasé par une actualisation).
   (db) => db.exec(`ALTER TABLE films ADD COLUMN overrides TEXT NOT NULL DEFAULT '{}'`),
+  // 6. Identifiant IMDb (TMDB) et notes IMDb / Rotten Tomatoes / Metacritic (OMDb, JSON).
+  (db) =>
+    db.exec(`
+      ALTER TABLE films ADD COLUMN imdb_id TEXT;
+      ALTER TABLE films ADD COLUMN ratings TEXT;
+    `),
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

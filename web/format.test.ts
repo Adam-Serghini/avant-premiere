@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAirDate, formatDateFr, formatRuntime, parseScore, readDateParam, releaseKicker, yearOf } from './format';
+import { formatRatings, formatAirDate, formatDateFr, formatRuntime, parseScore, readDateParam, releaseKicker, yearOf } from './format';
 
 describe('formatage', () => {
   it('formate les dates en français', () => {
@@ -32,6 +32,16 @@ describe('formatage', () => {
     expect(parseScore('-3')).toBe(0);
     expect(parseScore('6.6')).toBe(7);
     expect(parseScore('abc')).toBeNull();
+  });
+
+  it('formate les notes IMDb, Rotten Tomatoes et Metacritic', () => {
+    expect(formatRatings({ imdb: 7.4, rottenTomatoes: 85, metacritic: 72 })).toBe(
+      'IMDb 7,4 · Rotten Tomatoes 85 % · Metacritic 72',
+    );
+    expect(formatRatings({ imdb: 8, rottenTomatoes: null, metacritic: null })).toBe('IMDb 8,0');
+    expect(formatRatings({ imdb: null, rottenTomatoes: 91, metacritic: 60 })).toBe('Rotten Tomatoes 91 % · Metacritic 60');
+    expect(formatRatings({ imdb: null, rottenTomatoes: null, metacritic: null })).toBe('');
+    expect(formatRatings(null)).toBe('');
   });
 
   it('ignore une date d’URL invalide', () => {

@@ -19,6 +19,8 @@ const base: Film = {
   trailers: [{ key: 'abc', name: 'Trailer', lang: 'en', type: 'Trailer' }],
   fetchedAt: null,
   editedFields: [],
+  imdbId: null,
+  ratings: null,
 };
 
 const extra = { key: 'zzz', name: 'Bande-annonce ajoutée', lang: 'fr', type: 'Trailer' } as const;

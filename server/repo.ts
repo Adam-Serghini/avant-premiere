@@ -1,4 +1,4 @@
-import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Period } from '../shared/types';
+import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Period, Ratings } from '../shared/types';
 import { defaultTrailerKey, selectTrailers } from '../shared/trailer';
 import type { Db } from './db';
 import { applyOverrides, diffOverrides, parseOverrides } from './overrides';
@@ -21,6 +21,8 @@ export interface Repo {
   /** Enregistre les corrections qui diffèrent des infos de base ; les valeurs identiques à la base sont abandonnées. */
   editFilm(filmId: string, candidate: FilmOverrides): Film;
   clearFilmOverrides(filmId: string): Film;
+  /** Notes OMDb ; jamais écrites par `upsertFilm`, pour qu’une actualisation TMDB ne les efface pas. */
+  setFilmRatings(filmId: string, ratings: Ratings | null): void;
   getEmission(airDate: string): Emission;
   getEmissionById(id: number): Emission | null;
   addFilm(airDate: string, filmId: string, period: Period): Emission;
@@ -50,6 +52,8 @@ interface FilmRow {
   trailers: string;
   fetched_at: string | null;
   overrides: string;
+  imdb_id: string | null;
+  ratings: string | null;
 }
 
 interface EmissionFilmRow extends FilmRow {
@@ -71,6 +75,18 @@ interface LiveRow {
   air_date: string | null;
 }
 
+function parseRatings(raw: string | null): Ratings | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as Partial<Record<keyof Ratings, unknown>> | null;
+    if (typeof v !== 'object' || v === null || Array.isArray(v)) return null;
+    const num = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
+    return { imdb: num(v.imdb), rottenTomatoes: num(v.rottenTomatoes), metacritic: num(v.metacritic) };
+  } catch {
+    return null;
+  }
+}
+
 function baseFilmFromRow(r: FilmRow): Film {
   return {
     id: r.id,
@@ -90,6 +106,8 @@ function baseFilmFromRow(r: FilmRow): Film {
     trailers: selectTrailers(JSON.parse(r.trailers) as Film['trailers']),
     fetchedAt: r.fetched_at,
     editedFields: [],
+    imdbId: r.imdb_id,
+    ratings: parseRatings(r.ratings),
   };
 }
 
@@ -113,17 +131,19 @@ function emissionFilmFromRow(r: EmissionFilmRow): EmissionFilm {
 export function createRepo(db: Db): Repo {
   const q = {
     upsertFilm: db.prepare(`
-      INSERT INTO films (id, source, title, original_title, release_date_fr, poster_url, directors, cast_members, genres, runtime_min, synopsis, trailers, fetched_at)
-      VALUES (@id, @source, @title, @original_title, @release_date_fr, @poster_url, @directors, @cast_members, @genres, @runtime_min, @synopsis, @trailers, @fetched_at)
+      INSERT INTO films (id, source, title, original_title, release_date_fr, poster_url, directors, cast_members, genres, runtime_min, synopsis, trailers, fetched_at, imdb_id)
+      VALUES (@id, @source, @title, @original_title, @release_date_fr, @poster_url, @directors, @cast_members, @genres, @runtime_min, @synopsis, @trailers, @fetched_at, @imdb_id)
       ON CONFLICT(id) DO UPDATE SET
         source = excluded.source, title = excluded.title, original_title = excluded.original_title,
         release_date_fr = excluded.release_date_fr, poster_url = excluded.poster_url, directors = excluded.directors,
         cast_members = excluded.cast_members, genres = excluded.genres, runtime_min = excluded.runtime_min,
-        synopsis = excluded.synopsis, trailers = excluded.trailers, fetched_at = excluded.fetched_at`),
+        synopsis = excluded.synopsis, trailers = excluded.trailers, fetched_at = excluded.fetched_at,
+        imdb_id = excluded.imdb_id`),
     getFilm: db.prepare('SELECT * FROM films WHERE id = ?'),
     setPoster: db.prepare('UPDATE films SET custom_poster = ? WHERE id = ?'),
     setTrailer: db.prepare('UPDATE films SET local_trailer = ? WHERE id = ?'),
     setOverrides: db.prepare('UPDATE films SET overrides = ? WHERE id = ?'),
+    setRatings: db.prepare('UPDATE films SET ratings = ? WHERE id = ?'),
     insertEmission: db.prepare('INSERT OR IGNORE INTO emissions (air_date, created_at) VALUES (?, ?)'),
     emissionByDate: db.prepare('SELECT id FROM emissions WHERE air_date = ?'),
     emissionById: db.prepare('SELECT id, air_date FROM emissions WHERE id = ?'),
@@ -233,7 +253,13 @@ export function createRepo(db: Db): Repo {
         synopsis: film.synopsis,
         trailers: JSON.stringify(film.trailers),
         fetched_at: film.fetchedAt,
+        imdb_id: film.imdbId,
       });
+    },
+    setFilmRatings(filmId, ratings) {
+      if (q.setRatings.run(ratings && JSON.stringify(ratings), filmId).changes === 0) {
+        throw new RepoError('not_found', 'Film inconnu.');
+      }
     },
     getFilm(id) {
       const row = q.getFilm.get(id) as FilmRow | undefined;

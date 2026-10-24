@@ -28,6 +28,8 @@ function film(id: string, overrides: Partial<Film> = {}): Film {
     ],
     fetchedAt: '2026-10-07T10:00:00.000Z',
     editedFields: [],
+    imdbId: null,
+    ratings: null,
     ...overrides,
   };
 }
@@ -220,6 +222,45 @@ describe('corrections de fiche', () => {
     expect(f.editedFields).toEqual(['extraTrailer']);
     repo.upsertFilm(film('tmdb:1', { trailers: [...film('tmdb:1').trailers, { ...extra }] }));
     expect(repo.getFilm('tmdb:1')?.trailers.map((t) => t.key)).toEqual(['frTrailer01', 'zzz']);
+  });
+
+  it('enregistre l’identifiant IMDb avec la fiche', () => {
+    const repo = setup();
+    repo.upsertFilm(film('tmdb:1', { imdbId: 'tt1234567' }));
+    expect(repo.getFilm('tmdb:1')?.imdbId).toBe('tt1234567');
+  });
+
+  describe('notes', () => {
+    const ratings = { imdb: 7.4, rottenTomatoes: 85, metacritic: null };
+
+    it('enregistre et relit les notes, puis les efface', () => {
+      const repo = setup();
+      repo.setFilmRatings('tmdb:1', ratings);
+      expect(repo.getFilm('tmdb:1')?.ratings).toEqual(ratings);
+      repo.setFilmRatings('tmdb:1', null);
+      expect(repo.getFilm('tmdb:1')?.ratings).toBeNull();
+    });
+
+    it('survivent à une actualisation TMDB', () => {
+      const repo = setup();
+      repo.setFilmRatings('tmdb:1', ratings);
+      repo.upsertFilm(film('tmdb:1', { title: 'Autre titre', imdbId: 'tt9' }));
+      expect(repo.getFilm('tmdb:1')).toMatchObject({ title: 'Autre titre', imdbId: 'tt9', ratings });
+    });
+
+    it('lisent un JSON abîmé comme une absence de notes', () => {
+      const db = openDb(':memory:');
+      const repo = createRepo(db);
+      repo.upsertFilm(film('tmdb:1'));
+      db.prepare('UPDATE films SET ratings = ? WHERE id = ?').run('{pas du json', 'tmdb:1');
+      expect(repo.getFilm('tmdb:1')?.ratings).toBeNull();
+      db.prepare('UPDATE films SET ratings = ? WHERE id = ?').run('"texte"', 'tmdb:1');
+      expect(repo.getFilm('tmdb:1')?.ratings).toBeNull();
+    });
+
+    it('refusent un film inconnu', () => {
+      expect(() => setup().setFilmRatings('tmdb:404', ratings)).toThrow(RepoError);
+    });
   });
 
   it('efface les corrections', () => {

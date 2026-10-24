@@ -8,7 +8,7 @@ const film = {
   id: 'manual:1', source: 'manual', title: 'Le Corset', originalTitle: null, releaseDateFr: '2026-10-15',
   posterUrl: 'https://tmdb/a.jpg', customPosterUrl: '/media/b.jpg', localTrailerUrl: null,
   directors: ['Louis Clichy'], cast: ['Gary Clichy', 'Rod Paradot'], genres: ['Animation'], runtimeMin: 81,
-  synopsis: 'Un résumé.', trailers: [], fetchedAt: null, editedFields: [],
+  synopsis: 'Un résumé.', trailers: [], fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
 } as Film;
 const ef = { film, position: 1, period: 'next', opinion: 'privé', anecdotes: '', extendedUniverse: '', score: 9, trailerKey: null } as EmissionFilm;
 
@@ -21,5 +21,13 @@ describe('la Fiche à l’antenne', () => {
     expect(container.textContent).not.toMatch(/Avant-Première/);
     expect(container.textContent).not.toMatch(/privé|9\/10/);
     expect(screen.getByText(/Animation · 2026 · 1 h 21/)).toBeTruthy();
+  });
+
+  it('affiche les notes quand il y en a, et rien sinon', () => {
+    const rated = { ...ef, film: { ...film, ratings: { imdb: 7.4, rottenTomatoes: 85, metacritic: null } } } as EmissionFilm;
+    const { container, rerender } = render(<FullView ef={rated} position={1} total={4} />);
+    expect(container.querySelector('.ov-ratings')?.textContent).toBe('IMDb 7,4 · Rotten Tomatoes 85 %');
+    rerender(<FullView ef={ef} position={1} total={4} />);
+    expect(container.querySelector('.ov-ratings')).toBeNull();
   });
 });

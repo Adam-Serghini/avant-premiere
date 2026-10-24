@@ -7,7 +7,8 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
 1. Installer **Node.js LTS** depuis https://nodejs.org (version 22 ou plus récente).
 2. Créer un compte gratuit sur https://www.themoviedb.org, puis aller dans **Paramètres → API** et demander une clé (usage personnel).
 3. Dans le dossier de Avant-Première, copier `.env.example` en `.env` et coller la clé après `TMDB_API_KEY=`. La « Clé d'API » et le « Jeton d'accès en lecture » fonctionnent tous les deux. Dans le Bloc-notes, choisir « Tous les fichiers » à l'enregistrement pour que le fichier s'appelle bien `.env` et non `.env.txt`.
-4. Faire un clic droit sur `Avant-Premiere.bat` → **Envoyer vers → Bureau (créer un raccourci)**.
+4. (Facultatif, pour afficher les notes IMDb, Rotten Tomatoes et Metacritic) Créer une clé gratuite sur https://www.omdbapi.com/apikey.aspx (formule gratuite), puis la coller après `OMDB_API_KEY=` dans le fichier `.env`. Sans cette clé, les notes ne s'affichent simplement pas.
+5. Faire un clic droit sur `Avant-Premiere.bat` → **Envoyer vers → Bureau (créer un raccourci)**.
 
 ## Utilisation
 

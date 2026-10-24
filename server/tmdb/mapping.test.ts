@@ -23,6 +23,8 @@ describe('conversion TMDB', () => {
   it('convertit une fiche complète', () => {
     expect(toFilm(detailsFixture, NOW)).toEqual({
       id: 'tmdb:1001',
+      imdbId: 'tt1234567',
+      ratings: null,
       source: 'tmdb',
       title: 'La Nuit du projectionniste',
       originalTitle: 'The Projectionist Night',
@@ -48,6 +50,8 @@ describe('conversion TMDB', () => {
   it('supporte une fiche presque vide', () => {
     expect(toFilm(minimalDetailsFixture, NOW)).toEqual({
       id: 'tmdb:1002',
+      imdbId: null,
+      ratings: null,
       source: 'tmdb',
       title: 'Sans rien',
       originalTitle: null,
@@ -64,6 +68,12 @@ describe('conversion TMDB', () => {
       fetchedAt: NOW,
       editedFields: [],
     });
+  });
+
+  it('traite un identifiant IMDb vide comme absent', () => {
+    expect(toFilm({ ...minimalDetailsFixture, imdb_id: '' }, NOW).imdbId).toBeNull();
+    expect(toFilm({ ...minimalDetailsFixture, imdb_id: null }, NOW).imdbId).toBeNull();
+    expect(toFilm({ ...minimalDetailsFixture, imdb_id: ' tt42 ' }, NOW).imdbId).toBe('tt42');
   });
 
   it('n’indique pas le titre original s’il est identique', () => {

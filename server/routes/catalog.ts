@@ -29,7 +29,20 @@ export function parseTmdbId(filmId: string): number | null {
 async function fetchFilm(ctx: AppContext, tmdbId: number): Promise<Film> {
   const film = toFilm(await requireTmdb(ctx).details(tmdbId), ctx.now().toISOString());
   ctx.repo.upsertFilm(film);
+  await fetchRatings(ctx, film);
   return ctx.repo.getFilm(film.id)!;
+}
+
+/** Notes OMDb : jamais bloquantes. En cas d’échec, les notes précédentes restent en place. */
+async function fetchRatings(ctx: AppContext, film: Film): Promise<void> {
+  if (!ctx.omdb || !film.imdbId) return;
+  try {
+    const ratings = await ctx.omdb.ratings(film.imdbId);
+    if (ratings) ctx.repo.setFilmRatings(film.id, ratings);
+  } catch (e) {
+    // Le message d’OmdbError ne contient jamais la clé.
+    console.warn(`  ⚠ Notes OMDb indisponibles pour « ${film.title} » : ${e instanceof Error ? e.message : 'erreur inconnue'}`);
+  }
 }
 
 export async function ensureFilm(ctx: AppContext, filmId: string): Promise<Film> {
@@ -74,6 +87,8 @@ function buildManualFilm(input: ManualFilmInput, id: string = `manual:${randomUU
     trailers,
     fetchedAt: null,
     editedFields: [],
+    imdbId: null,
+    ratings: null,
   };
 }
 

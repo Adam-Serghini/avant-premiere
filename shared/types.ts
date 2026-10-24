@@ -36,6 +36,13 @@ export interface FilmOverrides {
   extraTrailer?: Trailer;
 }
 
+/** Notes publiques d’un film (via OMDb) : IMDb sur 10, Rotten Tomatoes en %, Metacritic sur 100. */
+export interface Ratings {
+  imdb: number | null;
+  rottenTomatoes: number | null;
+  metacritic: number | null;
+}
+
 export interface Film {
   id: string;
   source: 'tmdb' | 'manual';
@@ -56,6 +63,10 @@ export interface Film {
   fetchedAt: string | null;
   /** Champs corrigés par l’utilisateur (fiche TMDB) ; toujours vide pour une fiche manuelle. */
   editedFields: EditableField[];
+  /** Identifiant IMDb (« tt1234567 ») fourni par TMDB. */
+  imdbId: string | null;
+  /** null = jamais récupérées ou indisponibles. */
+  ratings: Ratings | null;
 }
 
 export interface ReleaseSummary {

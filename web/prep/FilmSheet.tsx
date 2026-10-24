@@ -3,7 +3,7 @@ import type { Emission, EmissionFilm } from '../../shared/types';
 import { NOTE_SECTIONS } from '../../shared/notes';
 import { effectiveTrailer, LOCAL_TRAILER, trailerLabels } from '../../shared/trailer';
 import { api } from '../api';
-import { formatRuntime, parseScore, releaseKicker, yearOf } from '../format';
+import { formatRatings, formatRuntime, parseScore, releaseKicker, yearOf } from '../format';
 import { useAutosave, type SaveStatus } from '../hooks/useAutosave';
 import { EditFilmDialog } from './EditFilmDialog';
 import { PosterControl, VideoControl } from './MediaControls';
@@ -67,6 +67,8 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
     .filter(Boolean)
     .join(' · ');
 
+  const ratings = formatRatings(film.ratings);
+
   return (
     <section className="sheet" aria-labelledby="sheet-title">
       <div className="sheet-head">
@@ -74,6 +76,7 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
         <h3 id="sheet-title">{film.title}</h3>
         {meta && <p className="sheet-meta">{meta}</p>}
         {film.cast.length > 0 && <p className="sheet-meta">Avec {film.cast.join(', ')}</p>}
+        {ratings && <p className="sheet-meta">{ratings}</p>}
       </div>
       <PosterControl film={film} onChanged={onFilmChanged} />
 

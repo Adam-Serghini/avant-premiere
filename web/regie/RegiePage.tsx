@@ -7,7 +7,7 @@ import { AppHeader } from '../components/AppHeader';
 import { Grain } from '../components/Grain';
 import { ChevronLeft, ChevronRight } from '../components/icons';
 import { Poster } from '../components/Poster';
-import { formatRuntime, readDateParam, releaseKicker, yearOf } from '../format';
+import { formatRatings, formatRuntime, readDateParam, releaseKicker, yearOf } from '../format';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
 import { DEFAULT_SHORTCUTS, type ShortcutMap } from '../../shared/shortcuts';
 import { OverlayPreview } from './OverlayPreview';
@@ -169,6 +169,7 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
                 </p>
                 {current.film.directors.length > 0 && <p className="hint">De {current.film.directors.join(', ')}</p>}
                 {current.film.cast.length > 0 && <p className="hint">Avec {current.film.cast.join(', ')}</p>}
+                {formatRatings(current.film.ratings) && <p className="hint">{formatRatings(current.film.ratings)}</p>}
                 <PrivateNotes ef={current} />
               </div>
             </div>

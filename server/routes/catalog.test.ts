@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Film, Releases } from '../../shared/types';
 import { LiveHub } from '../live/hub';
-import { fakeTmdb, makeApp } from '../test/helpers';
+import { fakeOmdb, fakeTmdb, makeApp } from '../test/helpers';
 import { TmdbError } from '../tmdb/client';
 
 describe('API catalogue', () => {
@@ -167,6 +167,67 @@ describe('API catalogue', () => {
       directors: ['Réalisatrice Y'],
       genres: [],
       customPosterUrl: '/media/x.jpg',
+    });
+  });
+
+  describe('notes OMDb', () => {
+    const url = '/api/films/tmdb%3A1001/refresh';
+    const expected = { imdb: 7.4, rottenTomatoes: 85, metacritic: 72 };
+
+    it('enregistre les notes quand une fiche TMDB est actualisée', async () => {
+      const omdb = fakeOmdb();
+      const { app, repo } = await makeApp({ omdb });
+      const film = (await app.inject({ method: 'POST', url })).json() as Film;
+      expect(omdb.ratings).toHaveBeenCalledWith('tt1234567');
+      expect(film.ratings).toEqual(expected);
+      expect(repo.getFilm('tmdb:1001')?.ratings).toEqual(expected);
+    });
+
+    it('les enregistre aussi quand le film est ajouté à l’émission', async () => {
+      const omdb = fakeOmdb();
+      const { app, repo } = await makeApp({ omdb });
+      const res = await app.inject({
+        method: 'POST', url: '/api/emissions/2026-10-13/films', payload: { filmId: 'tmdb:1001', period: 'past' },
+      });
+      expect(res.statusCode).toBeLessThan(300);
+      expect(repo.getFilm('tmdb:1001')?.ratings).toEqual(expected);
+    });
+
+    it('réussit quand OMDb échoue et garde les notes précédentes', async () => {
+      const omdb = fakeOmdb();
+      const { app, repo } = await makeApp({ omdb });
+      await app.inject({ method: 'POST', url });
+      omdb.ratings.mockRejectedValueOnce(new Error('OMDb ne répond pas.'));
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const res = await app.inject({ method: 'POST', url });
+      expect(res.statusCode).toBe(200);
+      expect((res.json() as Film).ratings).toEqual(expected);
+      expect(repo.getFilm('tmdb:1001')?.ratings).toEqual(expected);
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('garde les notes quand OMDb n’en connaît aucune', async () => {
+      const omdb = fakeOmdb();
+      const { app } = await makeApp({ omdb });
+      await app.inject({ method: 'POST', url });
+      omdb.ratings.mockResolvedValueOnce(null);
+      expect(((await app.inject({ method: 'POST', url })).json() as Film).ratings).toEqual(expected);
+    });
+
+    it('n’appelle pas OMDb sans identifiant IMDb', async () => {
+      const omdb = fakeOmdb();
+      const tmdb = fakeTmdb({ details: vi.fn(async (id: number) => ({ id, title: 'Sans IMDb', poster_path: null })) });
+      const { app } = await makeApp({ tmdb, omdb });
+      const film = (await app.inject({ method: 'POST', url })).json() as Film;
+      expect(omdb.ratings).not.toHaveBeenCalled();
+      expect(film.ratings).toBeNull();
+    });
+
+    it('fonctionne sans client OMDb : pas de notes, pas d’erreur', async () => {
+      const { app } = await makeApp();
+      const res = await app.inject({ method: 'POST', url });
+      expect(res.statusCode).toBe(200);
+      expect((res.json() as Film).ratings).toBeNull();
     });
   });
 

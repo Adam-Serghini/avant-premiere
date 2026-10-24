@@ -2,7 +2,7 @@ import { displayPoster } from '../../shared/film';
 import type { EmissionFilm } from '../../shared/types';
 import { Grain } from '../components/Grain';
 import { Poster } from '../components/Poster';
-import { formatRuntime, releaseKicker, yearOf } from '../format';
+import { formatRatings, formatRuntime, releaseKicker, yearOf } from '../format';
 
 interface Props {
   ef: EmissionFilm;
@@ -16,6 +16,7 @@ export function FullView({ ef, position, total }: Props) {
   const meta = [film.genres.slice(0, 2).join(', '), yearOf(film.releaseDateFr), formatRuntime(film.runtimeMin)]
     .filter(Boolean)
     .join(' · ');
+  const ratings = formatRatings(film.ratings);
   return (
     <div className="ov-fiche">
       <span className="ov-corner ov-corner--tl" aria-hidden="true" />
@@ -42,6 +43,7 @@ export function FullView({ ef, position, total }: Props) {
           )}
         </dl>
         {meta && <p className="ov-meta">{meta}</p>}
+        {ratings && <p className="ov-ratings">{ratings}</p>}
         {film.synopsis && <p className="ov-synopsis">{film.synopsis}</p>}
       </div>
       <span className="ov-counter">Film {position + 1} / {total}</span>

@@ -6,6 +6,7 @@ import { toHttpError } from './http';
 import { LiveHub } from './live/hub';
 import { createLiveService, type LiveService } from './live/service';
 import { createMediaStore, MEDIA_NAME, type MediaStore } from './media';
+import type { OmdbClient } from './omdb/client';
 import type { Repo } from './repo';
 import { registerCatalogRoutes } from './routes/catalog';
 import { registerEmissionRoutes } from './routes/emissions';
@@ -17,6 +18,7 @@ import type { TmdbClient } from './tmdb/client';
 export interface AppDeps {
   repo: Repo;
   tmdb: TmdbClient | null;
+  omdb: OmdbClient | null;
   now?: () => Date;
   staticDir?: string;
   mediaDir: string;
@@ -25,6 +27,7 @@ export interface AppDeps {
 export interface AppContext {
   repo: Repo;
   tmdb: TmdbClient | null;
+  omdb: OmdbClient | null;
   now: () => Date;
   live: LiveService;
   hub: LiveHub;
@@ -37,6 +40,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const ctx: AppContext = {
     repo: deps.repo,
     tmdb: deps.tmdb,
+    omdb: deps.omdb,
     now: deps.now ?? (() => new Date()),
     live,
     hub: new LiveHub((overlayConnected) => live.snapshot(overlayConnected)),

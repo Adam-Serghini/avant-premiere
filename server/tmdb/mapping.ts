@@ -11,6 +11,7 @@ export interface TmdbListItem {
 
 export interface TmdbDetails {
   id: number;
+  imdb_id?: string | null;
   title: string;
   original_title?: string;
   poster_path: string | null;
@@ -78,5 +79,7 @@ export function toFilm(d: TmdbDetails, fetchedAt: string): Film {
     trailers: trailersOf(d),
     fetchedAt,
     editedFields: [],
+    imdbId: d.imdb_id?.trim() || null,
+    ratings: null,
   };
 }

@@ -24,6 +24,8 @@ function film(id: string, withTrailer: boolean): Film {
     trailers: withTrailer ? [{ key: `ba-${id}`, name: 'BA', lang: 'fr', type: 'Trailer' }] : [],
     fetchedAt: null,
     editedFields: [],
+    imdbId: null,
+    ratings: null,
   };
 }
 

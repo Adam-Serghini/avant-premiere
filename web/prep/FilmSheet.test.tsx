@@ -14,7 +14,7 @@ function sheet(film: Partial<Film>, handlers: { onFilmChanged?(): void; onError?
   const base = {
     id: 'tmdb:1', source: 'tmdb', title: 'Film', originalTitle: null, releaseDateFr: null, posterUrl: null,
     customPosterUrl: null, localTrailerUrl: null, directors: [], cast: [], genres: [], runtimeMin: null,
-    synopsis: null, trailers: [], fetchedAt: null, editedFields: [],
+    synopsis: null, trailers: [], fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
   } as Film;
   const ef = { film: { ...base, ...film }, position: 0, period: 'past', opinion: '', anecdotes: '', extendedUniverse: '',
     score: null, trailerKey: null } as EmissionFilm;

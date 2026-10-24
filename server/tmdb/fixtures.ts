@@ -2,6 +2,7 @@ import type { TmdbDetails } from './mapping';
 
 export const detailsFixture: TmdbDetails = {
   id: 1001,
+  imdb_id: 'tt1234567',
   title: 'La Nuit du projectionniste',
   original_title: 'The Projectionist Night',
   poster_path: '/abc.jpg',
