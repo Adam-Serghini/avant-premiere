@@ -1,0 +1,29 @@
+AVANT-PREMIERE
+==============
+
+Rien a installer : tout est dans ce dossier.
+
+PREMIER LANCEMENT
+1. Dezipper le dossier ou tu veux (par exemple dans Documents). Ne pas le lancer depuis le zip.
+2. Double-cliquer sur Avant-Premiere.bat. Un fichier .env s'ouvre dans le Bloc-notes.
+3. Coller les cles :
+   - TMDB_API_KEY= : cle gratuite sur https://www.themoviedb.org (Parametres > API).
+   - OMDB_API_KEY= : cle gratuite sur https://www.omdbapi.com/apikey.aspx (facultatif, pour les notes
+     IMDb, Rotten Tomatoes et Metacritic). Penser a cliquer le lien d'activation recu par mail.
+   Pas de guillemets ni d'espace, par exemple : OMDB_API_KEY=a1b2c3d4
+4. Enregistrer, fermer le Bloc-notes, puis relancer Avant-Premiere.bat.
+
+ENSUITE
+- Double-cliquer sur Avant-Premiere.bat : une fenetre noire s'ouvre (la laisser ouverte pendant
+  l'utilisation) et la page de preparation s'affiche dans le navigateur.
+- Astuce : clic droit sur Avant-Premiere.bat > Envoyer vers > Bureau (creer un raccourci).
+- Preparation : http://localhost:4321
+- Regie : http://localhost:4321/regie
+- Source OBS : http://localhost:4321/overlay
+- Le guide complet (installation dans OBS, raccourcis, problemes courants) est dans README.md.
+
+MISE A JOUR
+Remplacer tous les fichiers par ceux de la nouvelle version, en gardant :
+- le fichier .env (les cles) ;
+- le dossier data (les emissions, les notes, les affiches et videos ajoutees).
+Fermer Avant-Premiere avant de copier.

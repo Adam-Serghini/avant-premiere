@@ -9,6 +9,7 @@
     "dev": "concurrently -n serveur,web \"tsx watch server/main.ts\" \"vite\"",
     "build": "vite build",
     "start": "tsx server/main.ts",
+    "pack": "node scripts/pack.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -27,6 +28,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.5",
+    "esbuild": "^0.28.2",
     "jsdom": "^29.1.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

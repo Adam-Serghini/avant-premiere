@@ -65,6 +65,7 @@ npm test           # tests
 npm run typecheck  # vérification des types
 npm run build      # construit l'interface dans dist/web
 npm start          # lance la version construite (http://localhost:4321)
+npm run pack       # fabrique release/Avant-Premiere.zip, prêt à l'emploi sous Windows (Node portable compris)
 ```
 
 Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB.
