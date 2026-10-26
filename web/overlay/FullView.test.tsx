@@ -34,6 +34,13 @@ describe('la Fiche à l’antenne', () => {
     expect(container.querySelector('.ov-ratings')).toBeNull();
   });
 
+  it('montre un résumé court en entier, sans coupure', () => {
+    const { container } = render(<FullView airDate="2026-10-27" ef={ef} position={3} total={15} part={part} />);
+    const syn = container.querySelector('.ov-synopsis');
+    expect(syn?.textContent).toBe('Un résumé.');
+    expect(syn?.classList.contains('is-clamped')).toBe(false);
+  });
+
   it('n’affiche pas de surtitre vide sans date de sortie', () => {
     const none = { ...ef, film: { ...film, releaseDateFr: null } } as EmissionFilm;
     const { container } = render(<FullView airDate="2026-10-27" ef={none} position={3} total={15} part={part} />);

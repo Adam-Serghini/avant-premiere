@@ -1,9 +1,11 @@
+import { useRef } from 'react';
 import { displayPoster } from '../../shared/film';
 import { SECTION_LABELS, type Section } from '../../shared/sections';
 import type { EmissionFilm } from '../../shared/types';
 import { Grain } from '../components/Grain';
 import { Poster } from '../components/Poster';
 import { formatRatings, formatRuntime, releaseKicker, yearOf } from '../format';
+import { useFitText } from './fitText';
 
 interface Props {
   ef: EmissionFilm;
@@ -16,6 +18,8 @@ interface Props {
 /** La Fiche, pensée pour remplir le cadre de gauche de la scène React (référence 1250 × 725). */
 export function FullView({ ef, airDate, position, total, part }: Props) {
   const { film } = ef;
+  const synopsisRef = useRef<HTMLParagraphElement>(null);
+  useFitText(synopsisRef, [film.synopsis]);
   const meta = [film.genres.slice(0, 2).join(', '), yearOf(film.releaseDateFr), formatRuntime(film.runtimeMin)]
     .filter(Boolean)
     .join(' · ');
@@ -48,7 +52,7 @@ export function FullView({ ef, airDate, position, total, part }: Props) {
         </dl>
         {meta && <p className="ov-meta">{meta}</p>}
         {ratings && <p className="ov-ratings">{ratings}</p>}
-        {film.synopsis && <p className="ov-synopsis">{film.synopsis}</p>}
+        {film.synopsis && <p className="ov-synopsis" ref={synopsisRef}>{film.synopsis}</p>}
       </div>
       <div className="ov-counter">
         {part && <span className="ov-counter-part">{SECTION_LABELS[part.section]} · {part.index} / {part.count}</span>}

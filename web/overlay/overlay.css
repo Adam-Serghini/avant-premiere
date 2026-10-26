@@ -19,7 +19,7 @@
 .ov-fiche-poster { flex: none; width: 29vw; max-height: calc(100vh - 8.8vw); aspect-ratio: 2 / 3; padding: 0.6vw; border: 0.16vw solid var(--gold); }
 .ov-fiche-poster .poster { width: 100%; height: 100%; aspect-ratio: auto; }
 .ov-fiche-poster .poster-title { font-size: 3.4vw; }
-.ov-fiche-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.5vw; }
+.ov-fiche-info { flex: 1; min-width: 0; max-height: 100%; display: flex; flex-direction: column; gap: 1.5vw; }
 .ov-kicker { font-family: var(--font-label); font-style: italic; font-size: 2vw; letter-spacing: 0.06em; color: var(--gold); }
 .ov-title {
   margin: 0; font-family: var(--font-display); font-weight: 600; font-variation-settings: 'SOFT' 100, 'WONK' 1;
@@ -34,7 +34,10 @@
 .ov-ratings { margin: 0; font-style: italic; color: var(--gold); font-size: 2vw; }
 .ov-synopsis {
   margin: 0; font-size: 1.9vw; line-height: 1.45; font-style: italic; color: var(--text-2);
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  flex: 1 1 auto; min-height: 0; overflow: hidden;
+}
+.ov-synopsis.is-clamped {
+  display: -webkit-box; -webkit-line-clamp: var(--clamp-lines, 3); -webkit-box-orient: vertical;
 }
 .ov-counter {
   position: absolute; top: 2.4vw; right: 2.8vw; z-index: 2; padding: 0.4vw 1.2vw;
