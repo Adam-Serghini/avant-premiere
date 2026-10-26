@@ -136,6 +136,7 @@ export interface LiveState {
 export interface RundownItem {
   filmId: string;
   title: string;
+  section: Section;
 }
 
 export interface LiveSnapshot {

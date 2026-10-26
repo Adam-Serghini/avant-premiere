@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { effectiveTrailer } from '../../shared/trailer';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
+import { sectionCounter } from '../../shared/sections';
 import { FullView } from './FullView';
 import { TrailerView } from './TrailerView';
 import './overlay.css';
@@ -24,7 +25,8 @@ export function OverlayPage() {
 
   return (
     <div className="overlay-stage" key={key}>
-      {state.mode === 'full' && <FullView ef={current} airDate={state.airDate} position={state.position} total={total} />}
+      {state.mode === 'full' && <FullView ef={current} airDate={state.airDate} position={state.position} total={total}
+          part={sectionCounter(snapshot.rundown, state.position)} />}
       {state.mode === 'trailer' && trailer && <TrailerView trailer={trailer} preview={preview} />}
     </div>
   );

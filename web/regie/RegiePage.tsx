@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { SECTIONS, SECTION_LABELS, sectionCounter } from '../../shared/sections';
 import type { DisplayMode, LiveAction, LiveSnapshot } from '../../shared/types';
 import { displayPoster } from '../../shared/film';
 import { effectiveTrailer } from '../../shared/trailer';
@@ -135,22 +136,32 @@ interface BoardProps {
 
 function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
   const { state, total, rundown, current } = snapshot;
+  const part = sectionCounter(rundown, state.position);
   const hasTrailer = current !== null && effectiveTrailer(current) !== null;
 
   return (
     <>
-      <ol className="steps" aria-label="Conducteur">
-        {rundown.map((r, i) => (
-          <li key={r.filmId}>
-            <button type="button" className={i < state.position ? 'is-done' : undefined}
-              aria-current={i === state.position ? 'step' : undefined}
-              onClick={() => send({ type: 'goto', position: i })}>
-              <span className="n">{i + 1}</span>
-              {r.title}
-            </button>
-          </li>
+      <div className="steps" role="group" aria-label="Conducteur">
+        {SECTIONS.filter((s) => rundown.some((r) => r.section === s)).map((s) => (
+          <section key={s} className="steps-part" aria-label={SECTION_LABELS[s]}>
+            <h2 className="steps-part-title">{SECTION_LABELS[s]}</h2>
+            <ol>
+              {rundown.map((r, i) =>
+                r.section === s ? (
+                  <li key={r.filmId}>
+                    <button type="button" className={i < state.position ? 'is-done' : undefined}
+                      aria-current={i === state.position ? 'step' : undefined}
+                      onClick={() => send({ type: 'goto', position: i })}>
+                      <span className="n">{i + 1}</span>
+                      {r.title}
+                    </button>
+                  </li>
+                ) : null,
+              )}
+            </ol>
+          </section>
         ))}
-      </ol>
+      </div>
 
       <div className="regie-body">
         {current && (
@@ -159,7 +170,11 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
               <Poster url={displayPoster(current.film)} title={current.film.title} />
               <div className="on-air-info">
                 <span className="label kicker">
-                  Film {state.position + 1} sur {total} · {releaseKicker(state.airDate, current.film.releaseDateFr)}
+                  {[
+                    part && `${SECTION_LABELS[part.section]} · ${part.index} / ${part.count}`,
+                    `Film ${state.position + 1} sur ${total}`,
+                    releaseKicker(state.airDate, current.film.releaseDateFr),
+                  ].filter(Boolean).join(' · ')}
                 </span>
                 <h1>{current.film.title}</h1>
                 <p className="hint">

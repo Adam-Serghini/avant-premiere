@@ -56,8 +56,8 @@ describe('service du live', () => {
     let snap = live.snapshot(true);
     expect(snap.total).toBe(2);
     expect(snap.rundown).toEqual([
-      { filmId: 'tmdb:1', title: 'Film tmdb:1' },
-      { filmId: 'tmdb:2', title: 'Film tmdb:2' },
+      { filmId: 'tmdb:1', title: 'Film tmdb:1', section: 'seen' },
+      { filmId: 'tmdb:2', title: 'Film tmdb:2', section: 'releases' },
     ]);
     expect(snap.current?.film.id).toBe('tmdb:1');
     expect(snap.overlayConnected).toBe(true);

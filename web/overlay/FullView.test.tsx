@@ -10,13 +10,16 @@ const film = {
   directors: ['Louis Clichy'], cast: ['Gary Clichy', 'Rod Paradot'], genres: ['Animation'], runtimeMin: 81,
   synopsis: 'Un résumé.', trailers: [], fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
 } as Film;
+const part = { section: 'docu', index: 1, count: 2 } as const;
 const ef = { film, position: 1, section: 'releases', opinion: 'privé', anecdotes: '', extendedUniverse: '', score: 9, trailerKey: null } as EmissionFilm;
 
 describe('la Fiche à l’antenne', () => {
   it('montre le film, le compteur et l’affiche choisie, sans nom ni logo ni notes', () => {
-    const { container } = render(<FullView airDate="2026-10-27" ef={ef} position={1} total={4} />);
+    const { container } = render(<FullView airDate="2026-10-27" ef={ef} position={3} total={15} part={part} />);
     expect(screen.getByRole('heading', { name: 'Le Corset' })).toBeTruthy();
-    expect(screen.getByText('Film 2 / 4')).toBeTruthy();
+    expect(container.querySelector('.ov-counter-part')?.textContent).toBe('Le coin docu · 1 / 2');
+    expect(container.querySelector('.ov-counter-total')?.textContent).toBe('Film 4 / 15');
+    expect(container.querySelector('.ov-counter')?.textContent).toContain('Le coin docu · 1 / 2');
     expect(container.querySelector('img')?.getAttribute('src')).toBe('/media/b.jpg');
     expect(container.textContent).not.toMatch(/Avant-Première/);
     expect(container.textContent).not.toMatch(/privé|9\/10/);
@@ -25,9 +28,15 @@ describe('la Fiche à l’antenne', () => {
 
   it('affiche les notes quand il y en a, et rien sinon', () => {
     const rated = { ...ef, film: { ...film, ratings: { imdb: 7.4, rottenTomatoes: 85, metacritic: null } } } as EmissionFilm;
-    const { container, rerender } = render(<FullView airDate="2026-10-27" ef={rated} position={1} total={4} />);
+    const { container, rerender } = render(<FullView airDate="2026-10-27" ef={rated} position={3} total={15} part={part} />);
     expect(container.querySelector('.ov-ratings')?.textContent).toBe('IMDb 7,4 · Rotten Tomatoes 85 %');
-    rerender(<FullView airDate="2026-10-27" ef={ef} position={1} total={4} />);
+    rerender(<FullView airDate="2026-10-27" ef={ef} position={3} total={15} part={part} />);
     expect(container.querySelector('.ov-ratings')).toBeNull();
+  });
+
+  it('n’affiche pas de surtitre vide sans date de sortie', () => {
+    const none = { ...ef, film: { ...film, releaseDateFr: null } } as EmissionFilm;
+    const { container } = render(<FullView airDate="2026-10-27" ef={none} position={3} total={15} part={part} />);
+    expect(container.querySelector('.ov-kicker')).toBeNull();
   });
 });

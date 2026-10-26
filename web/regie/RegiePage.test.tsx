@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SHORTCUTS } from '../../shared/shortcuts';
 import { RegiePage } from './RegiePage';
@@ -60,5 +60,53 @@ describe('RegiePage au chargement', () => {
     vi.mocked(api.shortcuts).mockRejectedValue(new Error('réseau'));
     render(<RegiePage />);
     expect(await screen.findByText(/touches par défaut utilisées/)).toBeTruthy();
+  });
+});
+
+describe('RegiePage, les parties', () => {
+  const film = (id: string, title: string) => ({
+    id, source: 'manual', title, originalTitle: null, releaseDateFr: null, posterUrl: null, customPosterUrl: null,
+    localTrailerUrl: null, directors: [], cast: [], genres: [], runtimeMin: null, synopsis: null, trailers: [],
+    fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
+  });
+  const live = {
+    state: { airDate: '2026-10-27', position: 2, mode: 'off' },
+    total: 4,
+    rundown: [
+      { filmId: 'a', title: 'Alpha', section: 'seen' },
+      { filmId: 'b', title: 'Bravo', section: 'docu' },
+      { filmId: 'c', title: 'Charlie', section: 'docu' },
+      { filmId: 'd', title: 'Delta', section: 'classic' },
+    ],
+    current: { film: film('c', 'Charlie'), position: 2, section: 'docu', opinion: '', anecdotes: '', extendedUniverse: '', score: null, trailerKey: null },
+    overlayConnected: false,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useLiveSnapshot).mockReturnValue({ snapshot: live, connected: true } as never);
+    vi.mocked(api.live).mockResolvedValue(live as never);
+    vi.mocked(api.shortcuts).mockResolvedValue(DEFAULT_SHORTCUTS);
+    window.history.replaceState(null, '', '/regie?date=2026-10-27');
+  });
+  afterEach(() => {
+    cleanup();
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('groupe le conducteur par partie non vide', async () => {
+    const { container } = render(<RegiePage />);
+    await screen.findByRole('heading', { name: 'Charlie' });
+    const titles = [...container.querySelectorAll('.steps-part-title')].map((t) => t.textContent);
+    expect(titles).toEqual(['Film vu cette semaine', 'Le coin docu', 'Le classique']);
+    expect(screen.queryByText('Sortie de la semaine')).toBeNull();
+    expect(container.querySelectorAll('.steps .n')[3].textContent).toBe('4');
+  });
+
+  it('indique la partie et le rang du film en cours dans le surtitre', async () => {
+    const { container } = render(<RegiePage />);
+    await screen.findByRole('heading', { name: 'Charlie' });
+    const kicker = container.querySelector('.on-air .kicker')?.textContent ?? '';
+    expect(kicker).toBe('Le coin docu · 2 / 2 · Film 3 sur 4');
   });
 });

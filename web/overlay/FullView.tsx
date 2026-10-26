@@ -1,4 +1,5 @@
 import { displayPoster } from '../../shared/film';
+import { SECTION_LABELS, type Section } from '../../shared/sections';
 import type { EmissionFilm } from '../../shared/types';
 import { Grain } from '../components/Grain';
 import { Poster } from '../components/Poster';
@@ -9,15 +10,17 @@ interface Props {
   airDate: string | null;
   position: number;
   total: number;
+  part: { section: Section; index: number; count: number } | null;
 }
 
 /** La Fiche, pensée pour remplir le cadre de gauche de la scène React (référence 1250 × 725). */
-export function FullView({ ef, airDate, position, total }: Props) {
+export function FullView({ ef, airDate, position, total, part }: Props) {
   const { film } = ef;
   const meta = [film.genres.slice(0, 2).join(', '), yearOf(film.releaseDateFr), formatRuntime(film.runtimeMin)]
     .filter(Boolean)
     .join(' · ');
   const ratings = formatRatings(film.ratings);
+  const kicker = releaseKicker(airDate, film.releaseDateFr);
   return (
     <div className="ov-fiche">
       <span className="ov-corner ov-corner--tl" aria-hidden="true" />
@@ -26,7 +29,7 @@ export function FullView({ ef, airDate, position, total }: Props) {
         <Poster url={displayPoster(film)} title={film.title} />
       </div>
       <div className="ov-fiche-info">
-        <span className="ov-kicker">{releaseKicker(airDate, film.releaseDateFr)}</span>
+        {kicker && <span className="ov-kicker">{kicker}</span>}
         <h1 className={`ov-title${film.title.length > 24 ? ' ov-title--long' : ''}`}>{film.title}</h1>
         <div className="ov-rule" />
         <dl className="ov-credits">
@@ -47,7 +50,10 @@ export function FullView({ ef, airDate, position, total }: Props) {
         {ratings && <p className="ov-ratings">{ratings}</p>}
         {film.synopsis && <p className="ov-synopsis">{film.synopsis}</p>}
       </div>
-      <span className="ov-counter">Film {position + 1} / {total}</span>
+      <div className="ov-counter">
+        {part && <span className="ov-counter-part">{SECTION_LABELS[part.section]} · {part.index} / {part.count}</span>}
+        <span className="ov-counter-total">Film {position + 1} / {total}</span>
+      </div>
       <Grain variant="screen" />
     </div>
   );

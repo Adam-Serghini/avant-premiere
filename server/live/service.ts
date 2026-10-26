@@ -41,7 +41,7 @@ export function createLiveService(repo: Repo): LiveService {
       return {
         state,
         total: films.length,
-        rundown: films.map((ef) => ({ filmId: ef.film.id, title: ef.film.title })),
+        rundown: films.map((ef) => ({ filmId: ef.film.id, title: ef.film.title, section: ef.section })),
         current: films[state.position] ?? null,
         overlayConnected,
       };
