@@ -140,6 +140,18 @@ describe('RegiePage, les parties', () => {
     expect(screen.getByText('En lecture · Son 70 %')).toBeTruthy();
   });
 
+  it('hors bande-annonce, n’affiche que le son, même après une pause', () => {
+    for (const mode of ['full', 'off']) {
+      vi.mocked(useLiveSnapshot).mockReturnValue({
+        snapshot: withPlayer(mode, { paused: true, volume: 70, seek: null }), connected: true,
+      } as never);
+      const { unmount } = render(<RegiePage />);
+      expect(screen.getByText('Son 70 %')).toBeTruthy();
+      expect(screen.queryByText(/En pause|En lecture/)).toBeNull();
+      unmount();
+    }
+  });
+
   it('en mode fiche, désactive pause et sauts mais pas le son', () => {
     render(<RegiePage />);
     for (const n of names) expect((screen.getByRole('button', { name: (t) => t.startsWith(n) }) as HTMLButtonElement).disabled).toBe(true);

@@ -89,6 +89,7 @@ export const MIGRATIONS: Migration[] = [
     `),
   // 7. Quatre parties à la place de la période : passé -> « Film vu », à venir -> « Sortie de la semaine ».
   (db) => {
+    // Les rangs des parties sont figés exprès dans le CASE : la migration ne doit pas suivre une liste qui évoluera.
     db.exec(`
       ALTER TABLE emission_films ADD COLUMN section TEXT NOT NULL DEFAULT 'releases'
         CHECK (section IN ('seen', 'docu', 'releases', 'classic'));

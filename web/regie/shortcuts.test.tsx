@@ -50,6 +50,21 @@ describe('raccourcis de la régie', () => {
     unmount();
   });
 
+  it('une touche maintenue n’agit qu’une fois mais ne fait pas défiler la page', () => {
+    const onAction = vi.fn();
+    const { unmount } = renderHook(() => useShortcuts(DEFAULT_SHORTCUTS, onAction));
+    const first = new KeyboardEvent('keydown', { code: 'ArrowDown', key: 'ArrowDown', bubbles: true, cancelable: true });
+    const again = new KeyboardEvent('keydown', { code: 'ArrowDown', key: 'ArrowDown', repeat: true, bubbles: true, cancelable: true });
+    const other = new KeyboardEvent('keydown', { code: 'KeyZ', key: 'z', repeat: true, bubbles: true, cancelable: true });
+    window.dispatchEvent(first);
+    window.dispatchEvent(again);
+    window.dispatchEvent(other);
+    expect(again.defaultPrevented).toBe(true);
+    expect(other.defaultPrevented).toBe(false);
+    expect(onAction).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
   it('Espace avec le focus sur un bouton : pause seulement, ni clic ni défilement', () => {
     const onAction = vi.fn();
     const onClick = vi.fn();
@@ -58,12 +73,11 @@ describe('raccourcis de la régie', () => {
     button.textContent = 'Film suivant';
     button.addEventListener('click', onClick);
     // Le navigateur clique à l'Espace relâché, sauf si keydown ou keyup a été annulé.
-    let downPrevented: boolean;
     document.body.appendChild(button);
     button.focus();
     const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true });
     button.dispatchEvent(down);
-    downPrevented = down.defaultPrevented;
+    const downPrevented = down.defaultPrevented;
     const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true });
     button.dispatchEvent(up);
     if (!downPrevented && !up.defaultPrevented) button.click();

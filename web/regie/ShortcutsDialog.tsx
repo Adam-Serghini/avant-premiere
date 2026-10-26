@@ -126,7 +126,8 @@ export function ShortcutsDialog({ open, map, onClose, onSave }: Props) {
       {pending && (
         <div className="shortcut-conflict" role="alert">
           <p>La touche « {pending.binding.label} » sert déjà à {SHORTCUT_LABELS[pending.conflict]}.
-            {!canSwap(map, pending.action, pending.conflict) && ` ${SHORTCUT_LABELS[pending.conflict]} doit garder une touche : choisis une autre touche.`}</p>
+            {!canSwap(map, pending.action, pending.conflict) && ` ${SHORTCUT_LABELS[pending.conflict]} doit garder une touche : choisis une autre touche.`}
+            {canSwap(map, pending.action, pending.conflict) && map[pending.action] === null && ` ${SHORTCUT_LABELS[pending.conflict]} n’aura plus de touche.`}</p>
           <div className="toolbar-actions">
             {canSwap(map, pending.action, pending.conflict) && (
               <button type="button" className="btn"

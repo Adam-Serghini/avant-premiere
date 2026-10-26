@@ -47,7 +47,10 @@ describe('fitText', () => {
 });
 
 describe('useFitText', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
 
   function Probe({ text }: { text: string }) {
     const ref = useRef<HTMLParagraphElement>(null);
@@ -70,7 +73,6 @@ describe('useFitText', () => {
     const removed = vi.spyOn(window, 'removeEventListener');
     unmount();
     expect(removed).toHaveBeenCalledWith('resize', expect.any(Function));
-    vi.restoreAllMocks();
   });
 
   it('ne boucle pas avec un pas nul', () => {

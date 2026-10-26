@@ -13,9 +13,11 @@ const VOLUME_KEY = 'trailerVolume';
 const VOLUME_STEP = 10;
 
 export function createLiveService(repo: Repo): LiveService {
-  let paused = false;
+  // Après un redémarrage en mode bande-annonce, elle attend l'opérateur au lieu de repartir seule.
+  let paused = repo.getLiveState().mode === 'trailer';
   let seek: PlayerState['seek'] = null;
-  let seekId = 0;
+  // Amorcé sur l'horloge : les identifiants ne reculent jamais d'un redémarrage à l'autre.
+  let seekId = Date.now();
 
   function readVolume(): number {
     const raw = repo.getSetting(VOLUME_KEY);

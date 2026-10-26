@@ -95,6 +95,17 @@ describe('fenêtre des raccourcis', () => {
     expect(screen.getByText('Reculer de 5 s')).toBeTruthy();
   });
 
+  it('prévient quand l’échange laisse une autre action de la bande-annonce sans touche', async () => {
+    const { onSave, modify } = setup({ ...DEFAULT_SHORTCUTS, back: null });
+    modify(6);
+    fireEvent.keyDown(window, { code: 'KeyL', key: 'l' });
+    expect(screen.getByRole('alert').textContent).toMatch(/sert déjà à Avancer de 5 s\. Avancer de 5 s n’aura plus de touche\./);
+    fireEvent.click(screen.getByRole('button', { name: 'Échanger' }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({ ...DEFAULT_SHORTCUTS, back: DEFAULT_SHORTCUTS.forward, forward: null }),
+    );
+  });
+
   it('n’offre pas d’échange qui priverait une action obligatoire de sa touche', () => {
     const { onSave, modify } = setup({ ...DEFAULT_SHORTCUTS, back: null });
     modify(6);

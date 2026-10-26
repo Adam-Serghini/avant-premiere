@@ -33,11 +33,12 @@ export function useShortcuts(map: ShortcutMap, onAction: (action: LiveAction) =>
   useEffect(() => {
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.repeat) return;
       if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
       const action = keyToAction(e.code, latest.current.map);
       if (!action) return;
+      // Une touche maintenue ne doit pas faire défiler la page, mais ne répète pas l'action.
       e.preventDefault();
+      if (e.repeat) return;
       latest.current.onAction(action);
     };
     // Un bouton ayant le focus se clique à l'Espace relâché : on annule aussi le keyup.

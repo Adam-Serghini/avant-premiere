@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PlayerCommand } from '../../shared/shortcuts';
 import type { Film } from '../../shared/types';
 import { openDb } from '../db';
@@ -179,6 +179,76 @@ describe('service du live', () => {
       expect(live.snapshot(false).player).toMatchObject(clean);
       live.apply({ type: 'setMode', mode: 'trailer' });
       expect(live.snapshot(false).player).toMatchObject(clean);
+    });
+
+    it('garde la pause et le saut sur les actions sans effet', () => {
+      const { live } = setup();
+      live.apply({ type: 'start', airDate: DATE });
+      live.apply({ type: 'setMode', mode: 'trailer' });
+      cmd(live, 'forward');
+      const seek = live.snapshot(false).player.seek;
+      cmd(live, 'togglePause');
+      const noOps: [string, () => void][] = [
+        ['start de la même date', () => live.apply({ type: 'start', airDate: DATE })],
+        ['mode bande-annonce redemandé', () => live.apply({ type: 'setMode', mode: 'trailer' })],
+        ['goto de la position courante', () => live.apply({ type: 'goto', position: 0 })],
+        ['prev en position 0', () => live.apply({ type: 'prev' })],
+      ];
+      for (const [name, run] of noOps) {
+        run();
+        const snap = live.snapshot(false);
+        expect(snap.state.mode, name).toBe('trailer');
+        expect(snap.player.paused, name).toBe(true);
+        expect(snap.player.seek, name).toEqual(seek);
+      }
+    });
+
+    it('garde la pause quand on est au dernier film et qu’on demande le suivant', () => {
+      const { repo, live } = setup();
+      repo.setFilmMedia('tmdb:2', 'trailer', '/media/v.mp4');
+      live.apply({ type: 'start', airDate: DATE });
+      live.apply({ type: 'next' });
+      live.apply({ type: 'setMode', mode: 'trailer' });
+      cmd(live, 'togglePause');
+      live.apply({ type: 'next' });
+      expect(live.snapshot(false).state.position).toBe(1);
+      expect(live.snapshot(false).player.paused).toBe(true);
+    });
+
+    describe('redémarrage', () => {
+      afterEach(() => vi.useRealTimers());
+
+      it('attend l’opérateur quand le service redémarre en bande-annonce', () => {
+        const { repo, live } = setup();
+        live.apply({ type: 'start', airDate: DATE });
+        live.apply({ type: 'setMode', mode: 'trailer' });
+        expect(live.snapshot(false).player.paused).toBe(false);
+        const restarted = createLiveService(repo);
+        expect(restarted.snapshot(false).player.paused).toBe(true);
+        cmd(restarted, 'togglePause');
+        expect(restarted.snapshot(false).player.paused).toBe(false);
+      });
+
+      it('ne repart pas en pause quand le mode persisté n’est pas la bande-annonce', () => {
+        const { repo, live } = setup();
+        live.apply({ type: 'start', airDate: DATE });
+        expect(createLiveService(repo).snapshot(false).player.paused).toBe(false);
+      });
+
+      it('ne réutilise jamais un identifiant de saut après un redémarrage', () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-26T20:00:00Z'));
+        const { repo, live } = setup();
+        live.apply({ type: 'start', airDate: DATE });
+        live.apply({ type: 'setMode', mode: 'trailer' });
+        cmd(live, 'forward');
+        cmd(live, 'forward');
+        const before = live.snapshot(false).player.seek!.id;
+        vi.setSystemTime(new Date('2026-10-26T20:00:05Z'));
+        const restarted = createLiveService(repo);
+        cmd(restarted, 'back');
+        expect(restarted.snapshot(false).player.seek!.id).toBeGreaterThan(before);
+      });
     });
   });
 });

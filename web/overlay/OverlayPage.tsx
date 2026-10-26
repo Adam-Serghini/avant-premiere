@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { displayPoster } from '../../shared/film';
+import { sectionCounter } from '../../shared/sections';
 import { effectiveTrailer } from '../../shared/trailer';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
-import { sectionCounter } from '../../shared/sections';
 import { FullView } from './FullView';
 import { TrailerView } from './TrailerView';
 import './overlay.css';

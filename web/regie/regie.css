@@ -39,7 +39,7 @@
 .private-notes .private-note h2 { margin: 14px 0 0; font-size: 15px; font-weight: 400; color: var(--gold); }
 .private-notes p { margin: 6px 0 0; white-space: pre-wrap; line-height: 1.5; }
 
-.controls { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.controls { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 .preview { position: relative; aspect-ratio: 1250 / 725; overflow: hidden; background: var(--camera); border: 1px solid var(--line); }
 .preview iframe {
   position: absolute; top: 0; left: 0; border: 0;
@@ -47,13 +47,15 @@
 }
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .modes .btn { min-height: 52px; padding: 0 10px; font-size: 15px; letter-spacing: 0.04em; flex-wrap: wrap; justify-content: center; row-gap: 2px; }
-.player-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.player-controls .btn { min-height: 44px; padding: 0 10px; font-size: 14px; letter-spacing: 0.04em; flex-wrap: wrap; justify-content: center; row-gap: 2px; }
+.player-block { display: flex; flex-direction: column; gap: 6px; }
+.player-controls { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.player-controls .btn { min-height: 52px; padding: 2px 4px; font-size: 13px; letter-spacing: 0; line-height: 1.15; flex-wrap: wrap; justify-content: center; align-content: center; row-gap: 2px; text-align: center; }
+.player-state { margin: 0; }
 .nav-buttons { display: flex; gap: 8px; }
-.nav-buttons .btn { min-height: 64px; flex: 1; }
+.nav-buttons .btn { min-height: 56px; flex: 1; }
 .nav-buttons .btn--primary { flex: 2; }
 kbd { white-space: nowrap; font-family: var(--font-label); font-size: 0.85em; padding: 0 6px; border: 1px solid currentColor; border-radius: 2px; opacity: 0.7; }
-.shortcut-hint { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.shortcut-hint { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
 .shortcuts-dialog { width: min(560px, calc(100vw - 32px)); padding: 24px; background: var(--surface); color: var(--text); border: 1px solid var(--gold-dark); border-radius: 3px; }
 .shortcuts-dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
 .shortcuts-dialog .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }

@@ -212,16 +212,20 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
               </button>
             ))}
           </div>
-          <div className="player-controls" role="group" aria-label="Bande-annonce">
-            {PLAYER_BUTTONS.map((b) => (
-              <button key={b.command} type="button" className="btn"
-                disabled={b.trailerOnly && state.mode !== 'trailer'}
-                onClick={() => send({ type: 'player', command: b.command })}>
-                {b.command === 'togglePause' && snapshot.player.paused ? 'Lecture' : b.label} <kbd>{keyText(shortcuts[b.command])}</kbd>
-              </button>
-            ))}
+          <div className="player-block">
+            <div className="player-controls" role="group" aria-label="Bande-annonce">
+              {PLAYER_BUTTONS.map((b) => (
+                <button key={b.command} type="button" className="btn"
+                  disabled={b.trailerOnly && state.mode !== 'trailer'}
+                  onClick={() => send({ type: 'player', command: b.command })}>
+                  {b.command === 'togglePause' && snapshot.player.paused ? 'Lecture' : b.label} <kbd>{keyText(shortcuts[b.command])}</kbd>
+                </button>
+              ))}
+            </div>
+            <p className="hint player-state">
+              {state.mode === 'trailer' && `${snapshot.player.paused ? 'En pause' : 'En lecture'} · `}Son {snapshot.player.volume} %
+            </p>
           </div>
-          <p className="hint">{snapshot.player.paused ? 'En pause' : 'En lecture'} · Son {snapshot.player.volume} %</p>
           {!hasTrailer && <p className="hint">Aucune bande-annonce trouvée pour ce film.</p>}
           <div className="nav-buttons">
             <button type="button" className="btn btn--ghost" disabled={state.position === 0}
@@ -235,9 +239,7 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
           </div>
           <div className="shortcut-hint">
             <p className="hint">
-              Raccourcis : <kbd>{keyText(shortcuts.prev)}</kbd> <kbd>{keyText(shortcuts.next)}</kbd> pour changer de film,{' '}
-              <kbd>{keyText(shortcuts.full)}</kbd> <kbd>{keyText(shortcuts.trailer)}</kbd> <kbd>{keyText(shortcuts.off)}</kbd> pour l’affichage, <kbd>{keyText(shortcuts.togglePause)}</kbd> pause, <kbd>{keyText(shortcuts.back)}</kbd> <kbd>{keyText(shortcuts.forward)}</kbd> ±5 s,
-              <kbd>{keyText(shortcuts.restart)}</kbd> début, <kbd>{keyText(shortcuts.volumeDown)}</kbd> <kbd>{keyText(shortcuts.volumeUp)}</kbd> son.
+              Changer de film : <kbd>{keyText(shortcuts.prev)}</kbd> <kbd>{keyText(shortcuts.next)}</kbd>
             </p>
             <button type="button" className="btn btn--ghost" onClick={onEditShortcuts}>Raccourcis</button>
           </div>
