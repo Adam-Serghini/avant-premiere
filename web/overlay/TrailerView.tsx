@@ -25,12 +25,12 @@ interface YTNamespace {
       playerVars: Record<string, number>;
       events: {
         onReady(e: { target: YTPlayer }): void;
-        onStateChange(e: { data: number }): void;
+        onStateChange(e: { data: number; target: YTPlayer }): void;
         onError(): void;
       };
     },
   ) => YTPlayer;
-  PlayerState: { ENDED: number };
+  PlayerState: { ENDED: number; PLAYING: number };
 }
 
 declare global {
@@ -164,6 +164,7 @@ function LocalTrailer({ url, preview, player }: { url: string; preview: boolean;
 
   useSeek(player.seek, (kind) => {
     const v = video.current;
+    // Sans élément vidéo, le saut est volontairement abandonné.
     if (!v) return;
     const target = seekTarget(kind, v.currentTime, v.duration);
     if (target !== null) v.currentTime = target;
@@ -221,7 +222,7 @@ function YouTubeTrailer({ videoId, preview, player, poster }: YouTubeProps) {
         videoId,
         width: '100%',
         height: '100%',
-        playerVars: { autoplay: 1, controls: 0, rel: 0, playsinline: 1, iv_load_policy: 3, modestbranding: 1 },
+        playerVars: { autoplay: latest.current.paused ? 0 : 1, controls: 0, rel: 0, playsinline: 1, iv_load_policy: 3, modestbranding: 1 },
         events: {
           onReady: (e) => {
             if (cancelled) return;
@@ -232,6 +233,9 @@ function YouTubeTrailer({ videoId, preview, player, poster }: YouTubeProps) {
             else e.target.playVideo();
           },
           onStateChange: (e) => {
+            // Avec l'autoplay, une pause demandée avant le vrai démarrage peut être ignorée,
+            // et un saut depuis l'état non démarré lance la lecture : on remet en pause.
+            if (e.data === YT.PlayerState.PLAYING && latest.current.paused) e.target.pauseVideo();
             if (e.data === YT.PlayerState.ENDED) finish();
           },
           onError: finish,
@@ -262,6 +266,7 @@ function YouTubeTrailer({ videoId, preview, player, poster }: YouTubeProps) {
 
   useSeek(player.seek, (kind) => {
     const p = yt.current;
+    // Un saut reçu avant que le lecteur soit prêt est volontairement abandonné.
     if (!p) return;
     const target = seekTarget(kind, p.getCurrentTime(), p.getDuration());
     if (target !== null) p.seekTo(target, true);

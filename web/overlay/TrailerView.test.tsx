@@ -170,19 +170,30 @@ describe('bande-annonce YouTube pilotée par la Régie', () => {
     setVolume = vi.fn();
     mute = vi.fn();
     destroy = vi.fn();
-    constructor(_el: HTMLElement, opts: { events: { onReady(e: { target: FakePlayer }): void } }) {
+    static autoReady = true;
+    constructor(_el: HTMLElement, public opts: FakeOpts) {
       players.push(this);
-      queueMicrotask(() => opts.events.onReady({ target: this }));
+      if (FakePlayer.autoReady) queueMicrotask(() => opts.events.onReady({ target: this }));
     }
   }
+  interface FakeOpts {
+    playerVars: Record<string, number>;
+    events: {
+      onReady(e: { target: FakePlayer }): void;
+      onStateChange(e: { data: number; target: FakePlayer }): void;
+    };
+  }
+  const PLAYING = 1;
 
   beforeEach(() => {
     players.length = 0;
-    window.YT = { Player: FakePlayer, PlayerState: { ENDED: 0 } } as never;
+    FakePlayer.autoReady = true;
+    window.YT = { Player: FakePlayer, PlayerState: { ENDED: 0, PLAYING } } as never;
   });
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.useRealTimers();
     delete window.YT;
   });
 
@@ -225,6 +236,38 @@ describe('bande-annonce YouTube pilotée par la Régie', () => {
     expect(yt.setVolume).not.toHaveBeenCalled();
     expect(yt.playVideo).not.toHaveBeenCalled();
     expect(yt.pauseVideo).toHaveBeenCalled();
+    expect(yt.opts.playerVars.autoplay).toBe(0);
     expect(container.querySelector('.trailer-pause')).not.toBeNull();
+  });
+
+  it('remet en pause une vidéo qui démarre malgré la pause', async () => {
+    const { rerender } = render(view(playerState()));
+    await vi.waitFor(() => expect(players[0]?.playVideo).toHaveBeenCalled());
+    const yt = players[0];
+    yt.opts.events.onStateChange({ data: PLAYING, target: yt });
+    expect(yt.pauseVideo).not.toHaveBeenCalled();
+    rerender(view(playerState({ paused: true })));
+    yt.pauseVideo.mockClear();
+    yt.opts.events.onStateChange({ data: PLAYING, target: yt });
+    expect(yt.pauseVideo).toHaveBeenCalledTimes(1);
+  });
+
+  it('une pause reçue avant que le lecteur soit prêt est appliquée et annule le délai de garde', async () => {
+    vi.useFakeTimers();
+    FakePlayer.autoReady = false;
+    const { rerender } = render(view(playerState()));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    const yt = players[0];
+    expect(yt).toBeDefined();
+    rerender(view(playerState({ paused: true })));
+    act(() => yt.opts.events.onReady({ target: yt }));
+    expect(yt.pauseVideo).toHaveBeenCalled();
+    expect(yt.playVideo).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000);
+    });
+    expect(api.liveAction).not.toHaveBeenCalled();
   });
 });
