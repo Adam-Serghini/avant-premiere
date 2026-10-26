@@ -34,4 +34,20 @@ describe('API raccourcis', () => {
     repo.setSetting('shortcuts', JSON.stringify({ next: { code: 'KeyN', label: 'N' } }));
     expect((await app.inject(URL)).json()).toEqual(DEFAULT_SHORTCUTS);
   });
+
+  it('relit une carte de l’ancienne version sans écraser les touches choisies', async () => {
+    const { app, repo } = await makeApp();
+    const old = {
+      next: { code: 'KeyJ', label: 'J' },
+      prev: DEFAULT_SHORTCUTS.prev,
+      full: DEFAULT_SHORTCUTS.full,
+      trailer: DEFAULT_SHORTCUTS.trailer,
+      off: DEFAULT_SHORTCUTS.off,
+    };
+    repo.setSetting('shortcuts', JSON.stringify(old));
+    const map = (await app.inject(URL)).json();
+    expect(map.next.code).toBe('KeyJ');
+    expect(map.back).toBeNull();
+    expect(map.forward).toEqual(DEFAULT_SHORTCUTS.forward);
+  });
 });

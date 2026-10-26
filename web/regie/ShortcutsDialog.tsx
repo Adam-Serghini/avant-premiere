@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_SHORTCUTS,
   forbiddenReason,
+    keyText,
   SHORTCUT_ACTIONS,
   SHORTCUT_LABELS,
   type KeyBinding,
@@ -9,7 +10,7 @@ import {
   type ShortcutMap,
 } from '../../shared/shortcuts';
 import { CloseIcon } from '../components/icons';
-import { assignKey, keyLabel, swapKeys } from './shortcutMap';
+import { assignKey, canSwap, keyLabel, swapKeys } from './shortcutMap';
 
 interface Props {
   open: boolean;
@@ -109,7 +110,7 @@ export function ShortcutsDialog({ open, map, onClose, onSave }: Props) {
         {SHORTCUT_ACTIONS.map((a) => (
           <li key={a}>
             <span>{SHORTCUT_LABELS[a]}</span>
-            <kbd>{map[a].label}</kbd>
+            {map[a] ? <kbd>{keyText(map[a])}</kbd> : <span className="hint">Aucune touche, à choisir</span>}
             <button type="button" className="btn btn--ghost" aria-pressed={capturing === a} disabled={saving}
               onClick={() => {
                 setPending(null);
@@ -124,16 +125,20 @@ export function ShortcutsDialog({ open, map, onClose, onSave }: Props) {
       {capturing && <p className="hint" aria-live="polite">Appuie sur une touche… (Échap pour annuler)</p>}
       {pending && (
         <div className="shortcut-conflict" role="alert">
-          <p>La touche « {pending.binding.label} » sert déjà à {SHORTCUT_LABELS[pending.conflict]}.</p>
+          <p>La touche « {pending.binding.label} » sert déjà à {SHORTCUT_LABELS[pending.conflict]}.
+            {!canSwap(map, pending.action, pending.conflict) && ' Cette action doit garder une touche : choisis une autre touche.'}</p>
           <div className="toolbar-actions">
-            <button type="button" className="btn"
-              onClick={() => {
-                const p = pending;
-                setPending(null);
-                void save(swapKeys(map, p.action, p.conflict));
-              }}>
-              Échanger
-            </button>
+            {canSwap(map, pending.action, pending.conflict) && (
+              <button type="button" className="btn"
+                onClick={() => {
+                  const p = pending;
+                  setPending(null);
+                  const swapped = swapKeys(map, p.action, p.conflict);
+                  if (swapped) void save(swapped);
+                }}>
+                Échanger
+              </button>
+            )}
             <button type="button" className="btn btn--ghost" onClick={() => setPending(null)}>Annuler</button>
           </div>
         </div>

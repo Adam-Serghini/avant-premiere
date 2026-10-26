@@ -12,10 +12,10 @@ beforeAll(() => {
 
 afterEach(cleanup);
 
-function setup() {
+function setup(map = DEFAULT_SHORTCUTS) {
   const onSave = vi.fn(async () => null as string | null);
   const onClose = vi.fn();
-  render(<ShortcutsDialog open map={DEFAULT_SHORTCUTS} onSave={onSave} onClose={onClose} />);
+  render(<ShortcutsDialog open map={map} onSave={onSave} onClose={onClose} />);
   const modify = (i: number) => fireEvent.click(screen.getAllByRole('button', { name: 'Modifier' })[i]!);
   return { onSave, onClose, modify };
 }
@@ -86,5 +86,21 @@ describe('fenêtre des raccourcis', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Touches par défaut' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(DEFAULT_SHORTCUTS));
     expect((await screen.findByRole('alert')).textContent).toMatch(/ne répond pas/);
+  });
+
+  it('liste les 11 actions et signale celles sans touche', () => {
+    setup({ ...DEFAULT_SHORTCUTS, back: null });
+    expect(screen.getAllByRole('button', { name: 'Modifier' })).toHaveLength(11);
+    expect(screen.getByText('Aucune touche, à choisir')).toBeTruthy();
+    expect(screen.getByText('Reculer de 5 s')).toBeTruthy();
+  });
+
+  it('n’offre pas d’échange qui priverait une action obligatoire de sa touche', () => {
+    const { onSave, modify } = setup({ ...DEFAULT_SHORTCUTS, back: null });
+    modify(6);
+    fireEvent.keyDown(window, { code: 'ArrowRight', key: 'ArrowRight' });
+    expect(screen.queryByRole('button', { name: 'Échanger' })).toBeNull();
+    expect(screen.getByRole('alert').textContent).toMatch(/choisis une autre touche/);
+    expect(onSave).not.toHaveBeenCalled();
   });
 });

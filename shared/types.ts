@@ -1,4 +1,5 @@
 import type { Section } from './sections';
+import type { PlayerCommand } from './shortcuts';
 
 export type Period = 'past' | 'next';
 export type DisplayMode = 'full' | 'trailer' | 'off';
@@ -153,7 +154,8 @@ export type LiveAction =
   | { type: 'prev' }
   | { type: 'goto'; position: number }
   | { type: 'setMode'; mode: DisplayMode }
-  | { type: 'trailerEnded' };
+  | { type: 'trailerEnded' }
+  | { type: 'player'; command: PlayerCommand };
 
 export interface ApiErrorBody {
   error: string;

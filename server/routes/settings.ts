@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { DEFAULT_SHORTCUTS, validateShortcuts, type ShortcutMap } from '../../shared/shortcuts';
+import { DEFAULT_SHORTCUTS, upgradeShortcuts, validateShortcuts, type ShortcutMap } from '../../shared/shortcuts';
 import type { AppContext } from '../app';
 import { HttpError } from '../http';
 import type { Repo } from '../repo';
@@ -10,7 +10,7 @@ function readShortcuts(repo: Repo): ShortcutMap {
   const raw = repo.getSetting(KEY);
   if (raw === null) return DEFAULT_SHORTCUTS;
   try {
-    const result = validateShortcuts(JSON.parse(raw));
+    const result = validateShortcuts(upgradeShortcuts(JSON.parse(raw)));
     return result.ok ? result.map : DEFAULT_SHORTCUTS;
   } catch {
     return DEFAULT_SHORTCUTS;

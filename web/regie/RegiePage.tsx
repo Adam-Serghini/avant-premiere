@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight } from '../components/icons';
 import { Poster } from '../components/Poster';
 import { formatRatings, formatRuntime, readDateParam, releaseKicker, yearOf } from '../format';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
-import { DEFAULT_SHORTCUTS, type ShortcutMap } from '../../shared/shortcuts';
+import { DEFAULT_SHORTCUTS, keyText, type ShortcutMap } from '../../shared/shortcuts';
 import { OverlayPreview } from './OverlayPreview';
 import { PrivateNotes } from './PrivateNotes';
 import { ShortcutsDialog } from './ShortcutsDialog';
@@ -199,7 +199,7 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
               <button key={m.mode} type="button" className="btn" aria-pressed={state.mode === m.mode}
                 disabled={m.mode === 'trailer' && !hasTrailer}
                 onClick={() => send({ type: 'setMode', mode: m.mode })}>
-                {m.label} <kbd>{shortcuts[m.mode].label}</kbd>
+                {m.label} <kbd>{keyText(shortcuts[m.mode])}</kbd>
               </button>
             ))}
           </div>
@@ -216,8 +216,8 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
           </div>
           <div className="shortcut-hint">
             <p className="hint">
-              Raccourcis : <kbd>{shortcuts.prev.label}</kbd> <kbd>{shortcuts.next.label}</kbd> pour changer de film,{' '}
-              <kbd>{shortcuts.full.label}</kbd> <kbd>{shortcuts.trailer.label}</kbd> <kbd>{shortcuts.off.label}</kbd> pour l’affichage.
+              Raccourcis : <kbd>{keyText(shortcuts.prev)}</kbd> <kbd>{keyText(shortcuts.next)}</kbd> pour changer de film,{' '}
+              <kbd>{keyText(shortcuts.full)}</kbd> <kbd>{keyText(shortcuts.trailer)}</kbd> <kbd>{keyText(shortcuts.off)}</kbd> pour l’affichage.
             </p>
             <button type="button" className="btn btn--ghost" onClick={onEditShortcuts}>Raccourcis</button>
           </div>

@@ -1,7 +1,7 @@
 import type { DisplayMode, LiveAction, LiveState } from '../../shared/types';
 
 export type ReducerAction =
-  | Exclude<LiveAction, { type: 'start' }>
+  | Exclude<LiveAction, { type: 'start' } | { type: 'player' }>
   | { type: 'start'; emissionId: number; airDate: string };
 
 export interface LiveContext {

@@ -18,9 +18,16 @@ describe('carte des raccourcis', () => {
 
   it('échange les touches de deux actions', () => {
     const swapped = swapKeys(DEFAULT_SHORTCUTS, 'next', 'full');
-    expect(swapped.next).toEqual(DEFAULT_SHORTCUTS.full);
-    expect(swapped.full).toEqual(DEFAULT_SHORTCUTS.next);
-    expect(swapped.prev).toEqual(DEFAULT_SHORTCUTS.prev);
+    expect(swapped?.next).toEqual(DEFAULT_SHORTCUTS.full);
+    expect(swapped?.full).toEqual(DEFAULT_SHORTCUTS.next);
+    expect(swapped?.prev).toEqual(DEFAULT_SHORTCUTS.prev);
+  });
+
+  it('refuse un échange qui laisserait une action obligatoire sans touche', () => {
+    const map = { ...DEFAULT_SHORTCUTS, back: null };
+    expect(swapKeys(map, 'back', 'next')).toBeNull();
+    expect(assignKey(map, 'back', DEFAULT_SHORTCUTS.next!)).toEqual({ conflict: 'next' });
+    expect(swapKeys(map, 'back', 'forward')).not.toBeNull();
   });
 
   it('donne un nom lisible aux touches', () => {

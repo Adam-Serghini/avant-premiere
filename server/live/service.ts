@@ -47,6 +47,8 @@ export function createLiveService(repo: Repo): LiveService {
       };
     },
     apply(action) {
+      // Les commandes du lecteur arrivent avec la tâche suivante.
+      if (action.type === 'player') return;
       const current = repo.getLiveState();
       let emission: Emission | null;
       let reducerAction: ReducerAction;

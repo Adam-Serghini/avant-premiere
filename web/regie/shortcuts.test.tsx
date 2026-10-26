@@ -14,6 +14,11 @@ describe('raccourcis de la régie', () => {
     expect(keyToAction('KeyX', DEFAULT_SHORTCUTS)).toBeNull();
   });
 
+  it('reconnaît les commandes de la bande-annonce, et ignore une touche sans action', () => {
+    expect(keyToAction('Space', DEFAULT_SHORTCUTS)).toEqual({ type: 'player', command: 'togglePause' });
+    expect(keyToAction('KeyJ', { ...DEFAULT_SHORTCUTS, back: null })).toBeNull();
+  });
+
   it('suit une carte personnalisée', () => {
     const map = { ...DEFAULT_SHORTCUTS, next: { code: 'KeyN', label: 'N' } };
     expect(keyToAction('KeyN', map)).toEqual({ type: 'next' });

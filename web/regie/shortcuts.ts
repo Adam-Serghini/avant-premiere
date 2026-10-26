@@ -8,11 +8,17 @@ const ACTIONS: Record<ShortcutAction, LiveAction> = {
   full: { type: 'setMode', mode: 'full' },
   trailer: { type: 'setMode', mode: 'trailer' },
   off: { type: 'setMode', mode: 'off' },
+  togglePause: { type: 'player', command: 'togglePause' },
+  back: { type: 'player', command: 'back' },
+  forward: { type: 'player', command: 'forward' },
+  restart: { type: 'player', command: 'restart' },
+  volumeUp: { type: 'player', command: 'volumeUp' },
+  volumeDown: { type: 'player', command: 'volumeDown' },
 };
 
 /** `code` est la touche physique (`KeyboardEvent.code`) : ça marche en AZERTY comme en QWERTY. */
 export function keyToAction(code: string, map: ShortcutMap): LiveAction | null {
-  const action = SHORTCUT_ACTIONS.find((a) => sameKey(map[a].code, code));
+  const action = SHORTCUT_ACTIONS.find((a) => map[a] !== null && sameKey(map[a].code, code));
   return action ? ACTIONS[action] : null;
 }
 

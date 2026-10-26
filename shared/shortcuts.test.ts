@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SHORTCUTS, forbiddenReason, sameKey, validateShortcuts } from './shortcuts';
+import { DEFAULT_SHORTCUTS, forbiddenReason, sameKey, upgradeShortcuts, validateShortcuts } from './shortcuts';
 
 const valid = (patch: object) => validateShortcuts({ ...DEFAULT_SHORTCUTS, ...patch });
 
@@ -39,5 +39,26 @@ describe('raccourcis : règles', () => {
     expect(valid({ next: { code: 'KeyN', label: 'x'.repeat(17) } })).toMatchObject({ ok: false });
     expect(validateShortcuts(null)).toMatchObject({ ok: false });
     expect(validateShortcuts([])).toMatchObject({ ok: false });
+  });
+
+  it('accepte l’absence de touche pour une commande de bande-annonce seulement', () => {
+    expect(valid({ back: null }).ok).toBe(true);
+    expect(valid({ next: null })).toMatchObject({ ok: false, message: 'Il manque la touche de « Film suivant ».' });
+    expect(valid({ back: { code: 'Space', label: 'Espace' } }).ok).toBe(false);
+  });
+
+  it('met à niveau une carte de l’ancienne version sans écraser ses touches', () => {
+    const old = {
+      next: { code: 'KeyJ', label: 'J' },
+      prev: DEFAULT_SHORTCUTS.prev,
+      full: DEFAULT_SHORTCUTS.full,
+      trailer: DEFAULT_SHORTCUTS.trailer,
+      off: DEFAULT_SHORTCUTS.off,
+    };
+    const up = upgradeShortcuts(old);
+    expect(up.next).toEqual({ code: 'KeyJ', label: 'J' });
+    expect(up.back).toBeNull();
+    expect(up.forward).toEqual(DEFAULT_SHORTCUTS.forward);
+    expect(validateShortcuts(up).ok).toBe(true);
   });
 });
