@@ -29,6 +29,20 @@ describe('fiche de la régie', () => {
     vi.clearAllMocks();
   });
 
+  it('change la partie du film tout de suite', async () => {
+    vi.mocked(api.patchFilm).mockResolvedValue({} as never);
+    sheet({});
+    const select = screen.getByLabelText('Partie') as HTMLSelectElement;
+    expect(select.value).toBe('seen');
+    fireEvent.change(select, { target: { value: 'docu' } });
+    await waitFor(() => expect(api.patchFilm).toHaveBeenCalledWith('2026-10-13', 'tmdb:1', { section: 'docu' }));
+  });
+
+  it('n’affiche pas de « · » seul quand la sortie est inconnue', () => {
+    sheet({ releaseDateFr: null });
+    expect(screen.getByText('Fiche').textContent).toBe('Fiche');
+  });
+
   it('permet de modifier une fiche TMDB comme une fiche manuelle', () => {
     sheet({ source: 'tmdb' });
     expect(screen.getByRole('button', { name: 'Modifier la fiche' })).toBeTruthy();

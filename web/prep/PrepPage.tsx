@@ -1,5 +1,5 @@
-import type { Section } from '../../shared/sections';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Section } from '../../shared/sections';
 import type { Emission, EmissionFilm, Releases, ReleaseSummary } from '../../shared/types';
 import { hasPrivateContent } from '../../shared/notes';
 import { api, errorMessage } from '../api';
@@ -125,7 +125,7 @@ export function PrepPage() {
     const ids = films.map((f) => f.film.id);
     const i = ids.indexOf(filmId);
     const j = i + delta;
-    if (i < 0 || j < 0 || j >= ids.length) return;
+    if (i < 0 || j < 0 || j >= ids.length || films[i]!.section !== films[j]!.section) return;
     [ids[i], ids[j]] = [ids[j]!, ids[i]!];
     void mutate(() => api.reorder(date, ids));
   }

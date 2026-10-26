@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SECTION_LABELS, SECTIONS, type Section } from '../../shared/sections';
 import type { Emission, EmissionFilm } from '../../shared/types';
 import { NOTE_SECTIONS } from '../../shared/notes';
 import { effectiveTrailer, LOCAL_TRAILER, trailerLabels } from '../../shared/trailer';
@@ -48,6 +49,14 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
     }
   }
 
+  async function chooseSection(section: Section) {
+    try {
+      onSaved(await api.patchFilm(airDate, film.id, { section }));
+    } catch (e) {
+      onError(e);
+    }
+  }
+
   async function resetFilm() {
     if (!window.confirm('Effacer tes corrections et revenir aux infos de TMDB ?')) return;
     try {
@@ -68,15 +77,24 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
     .join(' · ');
 
   const ratings = formatRatings(film.ratings);
+  const kicker = releaseKicker(airDate, film.releaseDateFr);
 
   return (
     <section className="sheet" aria-labelledby="sheet-title">
       <div className="sheet-head">
-        <span className="sheet-kicker">Fiche · {releaseKicker(airDate, film.releaseDateFr)}</span>
+        <span className="sheet-kicker">
+          Fiche{kicker && ` · ${kicker}`}
+        </span>
         <h3 id="sheet-title">{film.title}</h3>
         {meta && <p className="sheet-meta">{meta}</p>}
         {film.cast.length > 0 && <p className="sheet-meta">Avec {film.cast.join(', ')}</p>}
         {ratings && <p className="sheet-meta">{ratings}</p>}
+        <div className="field sheet-section">
+          <label htmlFor="sheet-section">Partie</label>
+          <select id="sheet-section" value={ef.section} onChange={(e) => void chooseSection(e.target.value as Section)}>
+            {SECTIONS.map((s) => <option key={s} value={s}>{SECTION_LABELS[s]}</option>)}
+          </select>
+        </div>
       </div>
       <PosterControl film={film} onChanged={onFilmChanged} />
 

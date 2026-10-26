@@ -107,3 +107,8 @@ fieldset.field { border: 0; margin: 0; padding: 0; min-width: 0; }
 .field .field-sub { font-size: 15px; color: var(--text-2); text-transform: none; letter-spacing: 0; font-style: italic; }
 .no-result { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .media-control { display: flex; flex-direction: column; gap: 6px; }
+
+.rundown-parts { display: flex; flex-direction: column; gap: 14px; }
+.rundown-part-title { margin: 0 0 6px; font-family: var(--font-label); font-size: 16px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+.rundown-empty { margin: 0; padding: 6px 10px; font-style: italic; color: var(--text-2); }
+.sheet-section { margin-top: 6px; }

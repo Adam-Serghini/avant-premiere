@@ -1,5 +1,5 @@
-import type { Section } from '../../shared/sections';
 import { useEffect, useRef, useState } from 'react';
+import { SECTION_LABELS, SECTIONS, type Section } from '../../shared/sections';
 import type { ReleaseSummary } from '../../shared/types';
 import { api, errorMessage } from '../api';
 import { CloseIcon } from '../components/icons';
@@ -14,7 +14,7 @@ interface Props {
 
 export function AddFilmDialog({ open, onClose, onAdd }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [section, setSection] = useState<Section>('releases');
+  const [section, setSection] = useState<Section>('docu');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ReleaseSummary[]>([]);
   const [searching, setSearching] = useState(false);
@@ -93,16 +93,14 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
       </div>
 
       <fieldset className="field">
-        <legend>Période</legend>
+        <legend>Partie</legend>
         <div className="radio-row">
-          <label>
-            <input type="radio" name="period" checked={section === 'seen'} onChange={() => setSection('seen')} />
-            Déjà sorti
-          </label>
-          <label>
-            <input type="radio" name="period" checked={section === 'releases'} onChange={() => setSection('releases')} />
-            À venir
-          </label>
+          {SECTIONS.map((s) => (
+            <label key={s}>
+              <input type="radio" name="section" checked={section === s} onChange={() => setSection(s)} />
+              {SECTION_LABELS[s]}
+            </label>
+          ))}
         </div>
       </fieldset>
 
