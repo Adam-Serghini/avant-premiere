@@ -7,8 +7,9 @@ export function fitText(el: HTMLElement, { maxPx, minPx, stepPx }: FitOpts): { f
   let fontPx = maxPx;
   el.classList.remove('is-clamped');
   el.style.fontSize = `${fontPx}px`;
+  const step = stepPx > 0 ? stepPx : maxPx - minPx;
   while (el.scrollHeight > el.clientHeight && fontPx > minPx) {
-    fontPx = Math.max(minPx, Math.round((fontPx - stepPx) * 1000) / 1000);
+    fontPx = Math.max(minPx, Math.round((fontPx - step) * 1000) / 1000);
     el.style.fontSize = `${fontPx}px`;
   }
   const clamped = el.scrollHeight > el.clientHeight;
@@ -31,13 +32,18 @@ export function useFitText(ref: RefObject<HTMLElement | null>, deps: unknown[]):
     const fit = () => {
       if (off) return;
       const vw = window.innerWidth / 100;
-      fitText(el, { maxPx: 1.9 * vw, minPx: 1.35 * vw, stepPx: 0.05 * vw });
+      fitText(el, { maxPx: 1.9 * vw, minPx: 1.2 * vw, stepPx: 0.05 * vw });
     };
     fit();
     window.addEventListener('resize', fit);
-    document.fonts?.ready.then(fit);
+    document.fonts?.ready.then(fit).catch(() => {});
+    // La place du résumé dépend de tout ce qui le précède : on réajuste quand elle change
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit);
+    ro?.observe(el);
+    if (el.parentElement) ro?.observe(el.parentElement);
     return () => {
       off = true;
+      ro?.disconnect();
       window.removeEventListener('resize', fit);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
