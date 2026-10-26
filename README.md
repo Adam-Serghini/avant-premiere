@@ -21,6 +21,7 @@ Préparer l'émission cinéma du mardi et piloter l'affichage dans OBS, depuis u
 - **Régie** (http://localhost:4321/regie) :
   - pendant le live, par défaut, `→` et `←` changent de film ;
   - par défaut, les touches `1` à `3` choisissent l'affichage : fiche, bande-annonce, masquer ;
+  - pendant une bande-annonce : Espace pause/lecture, J et L reculent et avancent de 5 s, 0 revient au début, ↑ et ↓ règlent le son (touches par défaut, modifiables dans « Raccourcis ») ;
   - le bouton **Raccourcis** permet de changer ces touches.
 
 ## Intégrer à la scène React d'OBS

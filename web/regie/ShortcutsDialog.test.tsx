@@ -100,7 +100,7 @@ describe('fenêtre des raccourcis', () => {
     modify(6);
     fireEvent.keyDown(window, { code: 'ArrowRight', key: 'ArrowRight' });
     expect(screen.queryByRole('button', { name: 'Échanger' })).toBeNull();
-    expect(screen.getByRole('alert').textContent).toMatch(/choisis une autre touche/);
+    expect(screen.getByRole('alert').textContent).toMatch(/Film suivant doit garder une touche : choisis une autre touche\./);
     expect(onSave).not.toHaveBeenCalled();
   });
 });

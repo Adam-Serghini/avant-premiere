@@ -40,7 +40,16 @@ export function useShortcuts(map: ShortcutMap, onAction: (action: LiveAction) =>
       e.preventDefault();
       latest.current.onAction(action);
     };
+    // Un bouton ayant le focus se clique à l'Espace relâché : on annule aussi le keyup.
+    const upHandler = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+      if (keyToAction(e.code, latest.current.map)) e.preventDefault();
+    };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keyup', upHandler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      window.removeEventListener('keyup', upHandler);
+    };
   }, [enabled]);
 }

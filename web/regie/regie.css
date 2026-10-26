@@ -47,6 +47,8 @@
 }
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .modes .btn { min-height: 52px; padding: 0 10px; font-size: 15px; letter-spacing: 0.04em; flex-wrap: wrap; justify-content: center; row-gap: 2px; }
+.player-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.player-controls .btn { min-height: 44px; padding: 0 10px; font-size: 14px; letter-spacing: 0.04em; flex-wrap: wrap; justify-content: center; row-gap: 2px; }
 .nav-buttons { display: flex; gap: 8px; }
 .nav-buttons .btn { min-height: 64px; flex: 1; }
 .nav-buttons .btn--primary { flex: 2; }

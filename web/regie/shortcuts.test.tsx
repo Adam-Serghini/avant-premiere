@@ -50,6 +50,43 @@ describe('raccourcis de la régie', () => {
     unmount();
   });
 
+  it('Espace avec le focus sur un bouton : pause seulement, ni clic ni défilement', () => {
+    const onAction = vi.fn();
+    const onClick = vi.fn();
+    const { unmount } = renderHook(() => useShortcuts(DEFAULT_SHORTCUTS, onAction));
+    const button = document.createElement('button');
+    button.textContent = 'Film suivant';
+    button.addEventListener('click', onClick);
+    // Le navigateur clique à l'Espace relâché, sauf si keydown ou keyup a été annulé.
+    let downPrevented: boolean;
+    document.body.appendChild(button);
+    button.focus();
+    const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true });
+    button.dispatchEvent(down);
+    downPrevented = down.defaultPrevented;
+    const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true });
+    button.dispatchEvent(up);
+    if (!downPrevented && !up.defaultPrevented) button.click();
+    expect(down.defaultPrevented).toBe(true);
+    expect(up.defaultPrevented).toBe(true);
+    expect(onClick).not.toHaveBeenCalled();
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onAction).toHaveBeenCalledWith({ type: 'player', command: 'togglePause' });
+    button.remove();
+    unmount();
+  });
+
+  it('laisse l’Espace relâché dans un champ de saisie', () => {
+    const { unmount } = renderHook(() => useShortcuts(DEFAULT_SHORTCUTS, vi.fn()));
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true });
+    input.dispatchEvent(up);
+    expect(up.defaultPrevented).toBe(false);
+    input.remove();
+    unmount();
+  });
+
   it('se coupe quand enabled vaut false', () => {
     const onAction = vi.fn();
     const { rerender, unmount } = renderHook(({ on }) => useShortcuts(DEFAULT_SHORTCUTS, onAction, on), {

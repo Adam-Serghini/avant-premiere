@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SHORTCUTS } from '../../shared/shortcuts';
 import { RegiePage } from './RegiePage';
@@ -110,5 +110,50 @@ describe('RegiePage, les parties', () => {
     await screen.findByRole('heading', { name: 'Charlie' });
     const kicker = container.querySelector('.on-air .kicker')?.textContent ?? '';
     expect(kicker).toBe('Le coin docu · 2 / 2 · Film 3 sur 4');
+  });
+
+  const withPlayer = (mode: string, player: object) => ({ ...live, state: { ...live.state, mode }, player });
+  const names = ['Pause', '−5 s', '+5 s', 'Au début'];
+
+  it('affiche six commandes de bande-annonce avec leur touche', () => {
+    const { container } = render(<RegiePage />);
+    const box = container.querySelector('.player-controls') as HTMLElement;
+    expect([...box.querySelectorAll('button')].map((b) => b.textContent)).toEqual([
+      'Pause Espace', '−5 s J', '+5 s L', 'Au début 0', 'Son − ↓', 'Son + ↑',
+    ]);
+  });
+
+  it('propose Lecture quand la bande-annonce est en pause, et affiche l’état', () => {
+    vi.mocked(useLiveSnapshot).mockReturnValue({
+      snapshot: withPlayer('trailer', { paused: true, volume: 70, seek: null }), connected: true,
+    } as never);
+    render(<RegiePage />);
+    expect(screen.getByRole('button', { name: /^Lecture/ })).toBeTruthy();
+    expect(screen.getByText('En pause · Son 70 %')).toBeTruthy();
+  });
+
+  it('affiche En lecture', () => {
+    vi.mocked(useLiveSnapshot).mockReturnValue({
+      snapshot: withPlayer('trailer', { paused: false, volume: 70, seek: null }), connected: true,
+    } as never);
+    render(<RegiePage />);
+    expect(screen.getByText('En lecture · Son 70 %')).toBeTruthy();
+  });
+
+  it('en mode fiche, désactive pause et sauts mais pas le son', () => {
+    render(<RegiePage />);
+    for (const n of names) expect((screen.getByRole('button', { name: (t) => t.startsWith(n) }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /^Son −/ }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole('button', { name: /^Son \+/ }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('en mode bande-annonce, +5 s envoie la commande', () => {
+    vi.mocked(useLiveSnapshot).mockReturnValue({
+      snapshot: withPlayer('trailer', { paused: false, volume: 100, seek: null }), connected: true,
+    } as never);
+    vi.mocked(api.liveAction).mockResolvedValue(live as never);
+    render(<RegiePage />);
+    fireEvent.click(screen.getByRole('button', { name: /^\+5 s/ }));
+    expect(api.liveAction).toHaveBeenCalledWith({ type: 'player', command: 'forward' });
   });
 });
