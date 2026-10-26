@@ -16,9 +16,6 @@ export function Grain({ variant }: Props) {
         </filter>
         <rect width="100%" height="100%" filter={`url(#${filterId})`} />
       </svg>
-      <span className="scratch scratch--a" />
-      <span className="scratch scratch--b" />
-      <span className="scratch scratch--c" />
       <span className="dust dust--a" />
       <span className="dust dust--b" />
       <span className="dust dust--c" />

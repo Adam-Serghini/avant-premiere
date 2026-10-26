@@ -96,10 +96,6 @@ input[type='date'] { color-scheme: dark; }
   50% { transform: translate(2%, -3%); }
   75% { transform: translate(-2%, -1%); }
 }
-.scratch { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(227, 214, 188, 0.08); }
-.scratch--a { left: 17%; }
-.scratch--b { left: 61%; top: 12%; bottom: 30%; width: 2px; background: rgba(0, 0, 0, 0.3); }
-.scratch--c { left: 86%; top: 40%; background: rgba(227, 214, 188, 0.06); }
 .dust { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: rgba(227, 214, 188, 0.2); }
 .dust--a { top: 23%; left: 38%; }
 .dust--b { top: 71%; left: 12%; width: 4px; height: 2px; background: rgba(0, 0, 0, 0.45); }
