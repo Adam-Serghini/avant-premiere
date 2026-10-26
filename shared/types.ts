@@ -140,12 +140,19 @@ export interface RundownItem {
   section: Section;
 }
 
+export interface PlayerState {
+  paused: boolean;
+  volume: number;
+  seek: { id: number; kind: 'back' | 'forward' | 'restart' } | null;
+}
+
 export interface LiveSnapshot {
   state: LiveState;
   total: number;
   rundown: RundownItem[];
   current: EmissionFilm | null;
   overlayConnected: boolean;
+  player: PlayerState;
 }
 
 export type LiveAction =

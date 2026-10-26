@@ -19,6 +19,7 @@ const snap = (airDate: string | null, total: number) => ({
   rundown: [],
   current: null,
   overlayConnected: false,
+  player: { paused: false, volume: 100, seek: null },
 });
 
 describe('RegiePage au chargement', () => {
@@ -80,6 +81,7 @@ describe('RegiePage, les parties', () => {
     ],
     current: { film: film('c', 'Charlie'), position: 2, section: 'docu', opinion: '', anecdotes: '', extendedUniverse: '', score: null, trailerKey: null },
     overlayConnected: false,
+    player: { paused: false, volume: 100, seek: null },
   };
 
   beforeEach(() => {

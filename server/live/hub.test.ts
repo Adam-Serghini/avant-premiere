@@ -9,6 +9,7 @@ function build(overlayConnected: boolean): LiveSnapshot {
     rundown: [],
     current: null,
     overlayConnected,
+    player: { paused: false, volume: 100, seek: null },
   };
 }
 

@@ -1,3 +1,4 @@
+import { PLAYER_COMMANDS, type PlayerCommand } from '../../shared/shortcuts';
 import type { DisplayMode, LiveAction } from '../../shared/types';
 import { isIsoDate } from '../dates';
 import { HttpError } from '../http';
@@ -16,6 +17,9 @@ export function parseLiveAction(body: unknown): LiveAction {
       break;
     case 'setMode':
       if (MODES.includes(b.mode as DisplayMode)) return { type: 'setMode', mode: b.mode as DisplayMode };
+      break;
+    case 'player':
+      if (PLAYER_COMMANDS.includes(b.command as PlayerCommand)) return { type: 'player', command: b.command as PlayerCommand };
       break;
     case 'start':
       if (typeof b.airDate === 'string' && isIsoDate(b.airDate)) return { type: 'start', airDate: b.airDate };

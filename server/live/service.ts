@@ -1,4 +1,5 @@
-import type { Emission, LiveAction, LiveSnapshot, LiveState } from '../../shared/types';
+import type { PlayerCommand } from '../../shared/shortcuts';
+import type { Emission, LiveAction, LiveSnapshot, LiveState, PlayerState } from '../../shared/types';
 import { effectiveTrailer } from '../../shared/trailer';
 import type { Repo } from '../repo';
 import { clamp, reduce, type LiveContext, type ReducerAction } from './reducer';
@@ -8,7 +9,31 @@ export interface LiveService {
   apply(action: LiveAction): void;
 }
 
+const VOLUME_KEY = 'trailerVolume';
+const VOLUME_STEP = 10;
+
 export function createLiveService(repo: Repo): LiveService {
+  let paused = false;
+  let seek: PlayerState['seek'] = null;
+  let seekId = 0;
+
+  function readVolume(): number {
+    const raw = repo.getSetting(VOLUME_KEY);
+    const n = raw === null || raw.trim() === '' ? NaN : Number(raw);
+    return Number.isInteger(n) && n >= 0 && n <= 100 ? n : 100;
+  }
+
+  function applyPlayer(command: PlayerCommand, state: LiveState) {
+    if (command === 'volumeUp' || command === 'volumeDown') {
+      const delta = command === 'volumeUp' ? VOLUME_STEP : -VOLUME_STEP;
+      repo.setSetting(VOLUME_KEY, String(Math.min(100, Math.max(0, readVolume() + delta))));
+      return;
+    }
+    if (state.mode !== 'trailer') return;
+    if (command === 'togglePause') paused = !paused;
+    else seek = { id: ++seekId, kind: command };
+  }
+
   function emissionFor(id: number | null): Emission | null {
     return id === null ? null : repo.getEmissionById(id);
   }
@@ -44,12 +69,16 @@ export function createLiveService(repo: Repo): LiveService {
         rundown: films.map((ef) => ({ filmId: ef.film.id, title: ef.film.title, section: ef.section })),
         current: films[state.position] ?? null,
         overlayConnected,
+        player: { paused, volume: readVolume(), seek },
       };
     },
     apply(action) {
-      // Les commandes du lecteur arrivent avec la tâche suivante.
-      if (action.type === 'player') return;
       const current = repo.getLiveState();
+      if (action.type === 'player') {
+        const emission = emissionFor(current.emissionId);
+        applyPlayer(action.command, normalize(current, contextFor(emission)));
+        return;
+      }
       let emission: Emission | null;
       let reducerAction: ReducerAction;
       if (action.type === 'start') {
@@ -60,7 +89,14 @@ export function createLiveService(repo: Repo): LiveService {
         reducerAction = action;
       }
       const ctx = contextFor(emission);
-      repo.saveLiveState(reduce(normalize(current, ctx), reducerAction, ctx));
+      const before = normalize(current, ctx);
+      const after = reduce(before, reducerAction, ctx);
+      const enteredTrailer = after.mode === 'trailer' && before.mode !== 'trailer';
+      if (enteredTrailer || after.position !== before.position || after.mode !== 'trailer') {
+        paused = false;
+        seek = null;
+      }
+      repo.saveLiveState(after);
     },
   };
 }

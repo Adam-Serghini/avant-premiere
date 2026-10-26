@@ -52,6 +52,15 @@ describe('API du live', () => {
     }
   });
 
+  it('accepte une commande du lecteur et refuse les autres', async () => {
+    const { app } = await withTwoFilms();
+    const ok = await app.inject({ method: 'POST', url: '/api/live', payload: { type: 'player', command: 'volumeUp' } });
+    expect(ok.statusCode).toBe(200);
+    const bad = await app.inject({ method: 'POST', url: '/api/live', payload: { type: 'player', command: 'boom' } });
+    expect(bad.statusCode).toBe(400);
+    expect(bad.json()).toMatchObject({ message: 'Action de régie invalide.' });
+  });
+
   it('recadre le film à l’antenne si on le retire du conducteur', async () => {
     const { app, act } = await withTwoFilms();
     await act({ type: 'start', airDate: DATE });
