@@ -187,7 +187,7 @@ describe('API catalogue', () => {
       const omdb = fakeOmdb();
       const { app, repo } = await makeApp({ omdb });
       const res = await app.inject({
-        method: 'POST', url: '/api/emissions/2026-10-13/films', payload: { filmId: 'tmdb:1001', period: 'past' },
+        method: 'POST', url: '/api/emissions/2026-10-13/films', payload: { filmId: 'tmdb:1001', section: 'seen' },
       });
       expect(res.statusCode).toBeLessThan(300);
       expect(repo.getFilm('tmdb:1001')?.ratings).toEqual(expected);

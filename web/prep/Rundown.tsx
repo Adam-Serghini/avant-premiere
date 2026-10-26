@@ -1,3 +1,4 @@
+import { SECTION_LABELS } from '../../shared/sections';
 import type { EmissionFilm } from '../../shared/types';
 import { ChevronDown, ChevronUp } from '../components/icons';
 
@@ -21,7 +22,7 @@ export function Rundown({ films, activeId, onSelect, onMove }: Props) {
               onClick={() => onSelect(ef.film.id)}>
               <strong>{title}</strong>
               <span>
-                {ef.period === 'past' ? 'Déjà sorti' : 'À venir'} · {ef.score === null ? 'pas encore noté' : `${ef.score}/10`}
+                {SECTION_LABELS[ef.section]} · {ef.score === null ? 'pas encore noté' : `${ef.score}/10`}
               </span>
             </button>
             <button type="button" className="icon-btn" aria-label={`Monter ${title}`} disabled={i === 0}

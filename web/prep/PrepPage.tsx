@@ -1,5 +1,6 @@
+import type { Section } from '../../shared/sections';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Emission, EmissionFilm, Period, Releases, ReleaseSummary } from '../../shared/types';
+import type { Emission, EmissionFilm, Releases, ReleaseSummary } from '../../shared/types';
 import { hasPrivateContent } from '../../shared/notes';
 import { api, errorMessage } from '../api';
 import { AppHeader } from '../components/AppHeader';
@@ -111,9 +112,9 @@ export function PrepPage() {
     await mutate(() => api.removeFilm(date, ef.film.id));
   }
 
-  async function toggle(film: ReleaseSummary, period: Period, checked: boolean) {
+  async function toggle(film: ReleaseSummary, section: Section, checked: boolean) {
     if (checked) {
-      if (await mutate(() => api.addFilm(date, film.id, period))) setActiveId(film.id);
+      if (await mutate(() => api.addFilm(date, film.id, section))) setActiveId(film.id);
       return;
     }
     const ef = films.find((f) => f.film.id === film.id);
@@ -144,9 +145,9 @@ export function PrepPage() {
     });
   }
 
-  async function addFromDialog(filmId: string, period: Period): Promise<string | null> {
+  async function addFromDialog(filmId: string, section: Section): Promise<string | null> {
     try {
-      acceptEmission(await api.addFilm(date, filmId, period));
+      acceptEmission(await api.addFilm(date, filmId, section));
       setActionError(null);
       setActiveId(filmId);
       return null;
@@ -187,14 +188,14 @@ export function PrepPage() {
             films={releases?.past.films ?? null}
             loading={loadingReleases}
             selected={selected}
-            onToggle={(f, checked) => void toggle(f, 'past', checked)}
+            onToggle={(f, checked) => void toggle(f, 'seen', checked)}
           />
           <ReleaseGrid
             heading={releases ? `Sortent du ${formatDateFr(releases.next.from)} au ${formatDateFr(releases.next.to)}` : 'À venir'}
             films={releases?.next.films ?? null}
             loading={loadingReleases}
             selected={selected}
-            onToggle={(f, checked) => void toggle(f, 'next', checked)}
+            onToggle={(f, checked) => void toggle(f, 'releases', checked)}
           />
         </section>
 

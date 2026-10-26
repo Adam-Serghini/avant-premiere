@@ -1,16 +1,17 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import type { EmissionFilmPatch, Period } from '../../shared/types';
+import { SECTIONS, type Section } from '../../shared/sections';
+import type { EmissionFilmPatch } from '../../shared/types';
 import type { AppContext } from '../app';
 import { parseAirDate } from '../http';
 import { ensureFilm } from './catalog';
 
 const addSchema = {
   type: 'object',
-  required: ['filmId', 'period'],
+  required: ['filmId', 'section'],
   additionalProperties: false,
   properties: {
     filmId: { type: 'string', minLength: 1, maxLength: 200 },
-    period: { type: 'string', enum: ['past', 'next'] },
+    section: { type: 'string', enum: SECTIONS },
   },
 } as const;
 
@@ -18,6 +19,7 @@ const patchSchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
+    section: { type: 'string', enum: SECTIONS },
     opinion: { type: 'string', maxLength: 20000 },
     anecdotes: { type: 'string', maxLength: 20000 },
     extendedUniverse: { type: 'string', maxLength: 20000 },
@@ -48,9 +50,9 @@ export function registerEmissionRoutes(app: FastifyInstance, ctx: AppContext): v
 
   app.post(`${base}/films`, { schema: { body: addSchema } }, async (req) => {
     const date = dateParam(req);
-    const { filmId, period } = req.body as { filmId: string; period: Period };
+    const { filmId, section } = req.body as { filmId: string; section: Section };
     await ensureFilm(ctx, filmId);
-    const emission = ctx.repo.addFilm(date, filmId, period);
+    const emission = ctx.repo.addFilm(date, filmId, section);
     ctx.hub.broadcast();
     return emission;
   });

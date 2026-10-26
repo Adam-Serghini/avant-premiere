@@ -73,11 +73,11 @@ describe('repo', () => {
 
   it('ajoute les films à la suite, avec la VF par défaut', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
-    const e = repo.addFilm(DATE, 'tmdb:2', 'next');
-    expect(e.films.map((f) => [f.film.id, f.position, f.period])).toEqual([
-      ['tmdb:1', 0, 'past'],
-      ['tmdb:2', 1, 'next'],
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    const e = repo.addFilm(DATE, 'tmdb:2', 'releases');
+    expect(e.films.map((f) => [f.film.id, f.position, f.section])).toEqual([
+      ['tmdb:1', 0, 'seen'],
+      ['tmdb:2', 1, 'releases'],
     ]);
     expect(e.films[0]).toMatchObject({
       opinion: '',
@@ -90,19 +90,19 @@ describe('repo', () => {
 
   it('ignore un ajout en double', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
-    expect(repo.addFilm(DATE, 'tmdb:1', 'past').films).toHaveLength(1);
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    expect(repo.addFilm(DATE, 'tmdb:1', 'seen').films).toHaveLength(1);
   });
 
   it('refuse un film inconnu', () => {
-    expect(() => setup().addFilm(DATE, 'tmdb:404', 'past')).toThrow(RepoError);
+    expect(() => setup().addFilm(DATE, 'tmdb:404', 'seen')).toThrow(RepoError);
   });
 
   it('retire un film et renumérote', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
-    repo.addFilm(DATE, 'tmdb:2', 'past');
-    repo.addFilm(DATE, 'tmdb:3', 'next');
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    repo.addFilm(DATE, 'tmdb:2', 'seen');
+    repo.addFilm(DATE, 'tmdb:3', 'releases');
     const e = repo.removeFilm(DATE, 'tmdb:2');
     expect(e.films.map((f) => [f.film.id, f.position])).toEqual([
       ['tmdb:1', 0],
@@ -113,7 +113,7 @@ describe('repo', () => {
 
   it('modifie les sections de notes, la note et la bande-annonce', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
     repo.updateFilm(DATE, 'tmdb:1', { opinion: 'Superbe', anecdotes: 'Tourné en Islande', score: 8 });
     repo.updateFilm(DATE, 'tmdb:1', { extendedUniverse: 'Roman de 1862' });
     const e = repo.updateFilm(DATE, 'tmdb:1', { trailerKey: 'enTrailer01' });
@@ -129,7 +129,7 @@ describe('repo', () => {
 
   it('refuse une note invalide ou un film absent de l’émission', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
     expect(() => repo.updateFilm(DATE, 'tmdb:1', { score: 11 })).toThrow(/0 et 10/);
     expect(() => repo.updateFilm(DATE, 'tmdb:1', { score: 2.5 })).toThrow(RepoError);
     expect(() => repo.updateFilm(DATE, 'tmdb:2', { opinion: 'x' })).toThrow(RepoError);
@@ -137,20 +137,55 @@ describe('repo', () => {
 
   it('réordonne le conducteur', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
-    repo.addFilm(DATE, 'tmdb:2', 'past');
-    repo.addFilm(DATE, 'tmdb:3', 'next');
-    repo.reorder(DATE, ['tmdb:3', 'tmdb:1', 'tmdb:2']);
-    expect(ids(repo)).toEqual(['tmdb:3', 'tmdb:1', 'tmdb:2']);
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    repo.addFilm(DATE, 'tmdb:2', 'seen');
+    repo.addFilm(DATE, 'tmdb:3', 'releases');
+    repo.reorder(DATE, ['tmdb:2', 'tmdb:1', 'tmdb:3']);
+    expect(ids(repo)).toEqual(['tmdb:2', 'tmdb:1', 'tmdb:3']);
   });
 
   it('refuse un ordre qui ne contient pas exactement les films retenus', () => {
     const repo = setup();
-    repo.addFilm(DATE, 'tmdb:1', 'past');
-    repo.addFilm(DATE, 'tmdb:2', 'past');
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    repo.addFilm(DATE, 'tmdb:2', 'seen');
     expect(() => repo.reorder(DATE, ['tmdb:1'])).toThrow(RepoError);
     expect(() => repo.reorder(DATE, ['tmdb:1', 'tmdb:1'])).toThrow(RepoError);
     expect(() => repo.reorder(DATE, ['tmdb:1', 'tmdb:3'])).toThrow(RepoError);
+  });
+
+  it('range un ajout en fin de sa partie', () => {
+    const repo = setup();
+    repo.addFilm(DATE, 'tmdb:1', 'releases');
+    repo.addFilm(DATE, 'tmdb:2', 'seen');
+    const e = repo.addFilm(DATE, 'tmdb:3', 'docu');
+    expect(e.films.map((f) => [f.film.id, f.section, f.position])).toEqual([
+      ['tmdb:2', 'seen', 0],
+      ['tmdb:3', 'docu', 1],
+      ['tmdb:1', 'releases', 2],
+    ]);
+  });
+
+  it('change un film de partie : fin de la nouvelle partie, positions renumérotées', () => {
+    const repo = setup();
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    repo.addFilm(DATE, 'tmdb:2', 'releases');
+    repo.addFilm(DATE, 'tmdb:3', 'classic');
+    const e = repo.updateFilm(DATE, 'tmdb:1', { section: 'classic' });
+    expect(e.films.map((f) => [f.film.id, f.section, f.position])).toEqual([
+      ['tmdb:2', 'releases', 0],
+      ['tmdb:3', 'classic', 1],
+      ['tmdb:1', 'classic', 2],
+    ]);
+  });
+
+  it('refuse un ordre qui mélange les parties', () => {
+    const repo = setup();
+    repo.addFilm(DATE, 'tmdb:1', 'seen');
+    repo.addFilm(DATE, 'tmdb:2', 'releases');
+    expect(() => repo.reorder(DATE, ['tmdb:2', 'tmdb:1'])).toThrow(
+      new RepoError('invalid', 'Un film ne change de partie que par le choix de la partie.'),
+    );
+    expect(ids(repo)).toEqual(['tmdb:1', 'tmdb:2']);
   });
 
   it('conserve l’état du live après réouverture de la base', () => {

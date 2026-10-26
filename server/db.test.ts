@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import { afterEach, describe, expect, it } from 'vitest';
-import { BASE_SCHEMA, openDb, SCHEMA_VERSION } from './db';
+import { BASE_SCHEMA, MIGRATIONS, openDb, SCHEMA_VERSION } from './db';
 import { createRepo } from './repo';
 
 let tmp: string | null = null;
@@ -55,6 +55,33 @@ describe('migrations', () => {
     const db = openDb(v1File());
     expect(createRepo(db).getLiveState()).toMatchObject({ emissionId: 1, mode: 'full' });
     expect(() => db.prepare("UPDATE live_state SET mode = 'card' WHERE id = 1").run()).toThrow();
+    db.close();
+  });
+
+  it('la migration 7 range les films par partie sans rien perdre', () => {
+    tmp = mkdtempSync(join(tmpdir(), 'avant-premiere-db-'));
+    const file = join(tmp, 'v6.db');
+    const raw = new Database(file);
+    raw.exec(BASE_SCHEMA);
+    MIGRATIONS.slice(0, 6).forEach((step) => step(raw));
+    raw.pragma('user_version = 6');
+    raw.exec("INSERT INTO emissions (air_date, created_at) VALUES ('2026-10-13', '2026-10-07T10:00:00.000Z')");
+    ['A', 'B', 'C', 'D'].forEach((t, i) => {
+      raw.exec(`INSERT INTO films (id, source, title) VALUES ('tmdb:${t}', 'tmdb', 'Film ${t}')`);
+      raw.exec(`INSERT INTO emission_films (emission_id, film_id, position, period, opinion)
+        VALUES (1, 'tmdb:${t}', ${i}, '${t === 'A' || t === 'C' ? 'next' : 'past'}', 'avis ${t}')`);
+    });
+    raw.close();
+    const db = openDb(file);
+    const films = createRepo(db).getEmission('2026-10-13').films;
+    expect(films.map((f) => [f.film.title, f.section, f.position, f.opinion])).toEqual([
+      ['Film B', 'seen', 0, 'avis B'],
+      ['Film D', 'seen', 1, 'avis D'],
+      ['Film A', 'releases', 2, 'avis A'],
+      ['Film C', 'releases', 3, 'avis C'],
+    ]);
+    expect(columns(db, 'emission_films')).not.toContain('period');
+    expect(db.pragma('user_version', { simple: true })).toBe(7);
     db.close();
   });
 

@@ -44,10 +44,10 @@ CREATE TABLE IF NOT EXISTS live_state (
 INSERT OR IGNORE INTO live_state (id) VALUES (1);
 `;
 
-type Migration = (db: Db) => void;
+export type Migration = (db: Db) => void;
 
 /** Une entrée par version, dans l'ordre. Ne jamais modifier une migration déjà publiée : en ajouter une. */
-const MIGRATIONS: Migration[] = [
+export const MIGRATIONS: Migration[] = [
   // 1. Notes en trois sections : l'ancien texte devient « Mon avis ».
   (db) =>
     db.exec(`
@@ -87,6 +87,29 @@ const MIGRATIONS: Migration[] = [
       ALTER TABLE films ADD COLUMN imdb_id TEXT;
       ALTER TABLE films ADD COLUMN ratings TEXT;
     `),
+  // 7. Quatre parties à la place de la période : passé -> « Film vu », à venir -> « Sortie de la semaine ».
+  (db) => {
+    db.exec(`
+      ALTER TABLE emission_films ADD COLUMN section TEXT NOT NULL DEFAULT 'releases'
+        CHECK (section IN ('seen', 'docu', 'releases', 'classic'));
+      UPDATE emission_films SET section = CASE period WHEN 'past' THEN 'seen' ELSE 'releases' END;
+    `);
+    const rows = db
+      .prepare(
+        `SELECT emission_id, film_id FROM emission_films
+         ORDER BY emission_id, CASE section WHEN 'seen' THEN 0 WHEN 'docu' THEN 1 WHEN 'releases' THEN 2 ELSE 3 END, position`,
+      )
+      .all() as { emission_id: number; film_id: string }[];
+    const set = db.prepare('UPDATE emission_films SET position = ? WHERE emission_id = ? AND film_id = ?');
+    let last = -1;
+    let n = 0;
+    for (const r of rows) {
+      n = r.emission_id === last ? n + 1 : 0;
+      last = r.emission_id;
+      set.run(n, r.emission_id, r.film_id);
+    }
+    db.exec('ALTER TABLE emission_films DROP COLUMN period;');
+  },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

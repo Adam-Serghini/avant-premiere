@@ -10,11 +10,11 @@ const film = {
   directors: ['Louis Clichy'], cast: ['Gary Clichy', 'Rod Paradot'], genres: ['Animation'], runtimeMin: 81,
   synopsis: 'Un résumé.', trailers: [], fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
 } as Film;
-const ef = { film, position: 1, period: 'next', opinion: 'privé', anecdotes: '', extendedUniverse: '', score: 9, trailerKey: null } as EmissionFilm;
+const ef = { film, position: 1, section: 'releases', opinion: 'privé', anecdotes: '', extendedUniverse: '', score: 9, trailerKey: null } as EmissionFilm;
 
 describe('la Fiche à l’antenne', () => {
   it('montre le film, le compteur et l’affiche choisie, sans nom ni logo ni notes', () => {
-    const { container } = render(<FullView ef={ef} position={1} total={4} />);
+    const { container } = render(<FullView airDate="2026-10-27" ef={ef} position={1} total={4} />);
     expect(screen.getByRole('heading', { name: 'Le Corset' })).toBeTruthy();
     expect(screen.getByText('Film 2 / 4')).toBeTruthy();
     expect(container.querySelector('img')?.getAttribute('src')).toBe('/media/b.jpg');
@@ -25,9 +25,9 @@ describe('la Fiche à l’antenne', () => {
 
   it('affiche les notes quand il y en a, et rien sinon', () => {
     const rated = { ...ef, film: { ...film, ratings: { imdb: 7.4, rottenTomatoes: 85, metacritic: null } } } as EmissionFilm;
-    const { container, rerender } = render(<FullView ef={rated} position={1} total={4} />);
+    const { container, rerender } = render(<FullView airDate="2026-10-27" ef={rated} position={1} total={4} />);
     expect(container.querySelector('.ov-ratings')?.textContent).toBe('IMDb 7,4 · Rotten Tomatoes 85 %');
-    rerender(<FullView ef={ef} position={1} total={4} />);
+    rerender(<FullView airDate="2026-10-27" ef={ef} position={1} total={4} />);
     expect(container.querySelector('.ov-ratings')).toBeNull();
   });
 });

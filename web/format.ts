@@ -1,4 +1,4 @@
-import type { Period, Ratings } from '../shared/types';
+import type { Ratings } from '../shared/types';
 
 const MONTH = new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'UTC' });
 const WEEKDAY = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'UTC' });
@@ -18,9 +18,9 @@ export function formatAirDate(iso: string): string {
   return `${WEEKDAY.format(utc(iso))} ${formatDateFr(iso)}`;
 }
 
-export function releaseKicker(period: Period, date: string | null): string {
-  if (!date) return period === 'past' ? 'Déjà sorti' : 'À venir';
-  return `${period === 'past' ? 'Sorti' : 'Sort'} le ${formatDateFr(date)}`;
+export function releaseKicker(airDate: string | null, releaseDate: string | null): string {
+  if (!airDate || !releaseDate) return '';
+  return `${releaseDate <= airDate ? 'Sorti' : 'Sort'} le ${formatDateFr(releaseDate)}`;
 }
 
 export function formatRuntime(min: number | null): string {

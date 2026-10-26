@@ -1,5 +1,6 @@
+import type { Section } from '../../shared/sections';
 import { useEffect, useRef, useState } from 'react';
-import type { Period, ReleaseSummary } from '../../shared/types';
+import type { ReleaseSummary } from '../../shared/types';
 import { api, errorMessage } from '../api';
 import { CloseIcon } from '../components/icons';
 import { Poster } from '../components/Poster';
@@ -8,12 +9,12 @@ import { ManualFilmForm } from './ManualFilmForm';
 interface Props {
   open: boolean;
   onClose(): void;
-  onAdd(filmId: string, period: Period): Promise<string | null>;
+  onAdd(filmId: string, section: Section): Promise<string | null>;
 }
 
 export function AddFilmDialog({ open, onClose, onAdd }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [period, setPeriod] = useState<Period>('next');
+  const [section, setSection] = useState<Section>('releases');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ReleaseSummary[]>([]);
   const [searching, setSearching] = useState(false);
@@ -70,7 +71,7 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
   }
 
   async function add(filmId: string) {
-    const message = await onAdd(filmId, period);
+    const message = await onAdd(filmId, section);
     if (message === null) close();
     else setAddError(message);
   }
@@ -95,11 +96,11 @@ export function AddFilmDialog({ open, onClose, onAdd }: Props) {
         <legend>Période</legend>
         <div className="radio-row">
           <label>
-            <input type="radio" name="period" checked={period === 'past'} onChange={() => setPeriod('past')} />
+            <input type="radio" name="period" checked={section === 'seen'} onChange={() => setSection('seen')} />
             Déjà sorti
           </label>
           <label>
-            <input type="radio" name="period" checked={period === 'next'} onChange={() => setPeriod('next')} />
+            <input type="radio" name="period" checked={section === 'releases'} onChange={() => setSection('releases')} />
             À venir
           </label>
         </div>

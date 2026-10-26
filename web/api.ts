@@ -1,3 +1,4 @@
+import type { Section } from '../shared/sections';
 import type {
   ApiErrorBody,
   Emission,
@@ -6,7 +7,6 @@ import type {
   LiveAction,
   LiveSnapshot,
   ManualFilmInput,
-  Period,
   Releases,
   ReleaseSummary,
 } from '../shared/types';
@@ -78,8 +78,8 @@ export const api = {
   today: () => call<{ airDate: string }>('GET', '/api/today'),
   releases: (date: string) => call<Releases>('GET', `/api/releases?date=${enc(date)}`),
   emission: (date: string) => call<Emission>('GET', emissionPath(date)),
-  addFilm: (date: string, filmId: string, period: Period) =>
-    call<Emission>('POST', `${emissionPath(date)}/films`, { filmId, period }),
+  addFilm: (date: string, filmId: string, section: Section) =>
+    call<Emission>('POST', `${emissionPath(date)}/films`, { filmId, section }),
   removeFilm: (date: string, filmId: string) => call<Emission>('DELETE', `${emissionPath(date)}/films/${enc(filmId)}`),
   patchFilm: (date: string, filmId: string, patch: EmissionFilmPatch) =>
     call<Emission>('PATCH', `${emissionPath(date)}/films/${enc(filmId)}`, patch, true),

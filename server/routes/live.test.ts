@@ -16,7 +16,7 @@ describe('mode Carte supprimé', () => {
 async function withTwoFilms() {
   const ctx = await makeApp();
   for (const filmId of ['tmdb:1001', 'tmdb:2001']) {
-    await ctx.app.inject({ method: 'POST', url: `/api/emissions/${DATE}/films`, payload: { filmId, period: 'past' } });
+    await ctx.app.inject({ method: 'POST', url: `/api/emissions/${DATE}/films`, payload: { filmId, section: 'seen' } });
   }
   const act = async (payload: object) =>
     (await ctx.app.inject({ method: 'POST', url: '/api/live', payload })).json() as LiveSnapshot;

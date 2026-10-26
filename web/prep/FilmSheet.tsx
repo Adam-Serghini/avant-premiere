@@ -72,7 +72,7 @@ export function FilmSheet({ airDate, ef, onSaved, onRemove, onRefresh, onFilmCha
   return (
     <section className="sheet" aria-labelledby="sheet-title">
       <div className="sheet-head">
-        <span className="sheet-kicker">Fiche · {releaseKicker(ef.period, film.releaseDateFr)}</span>
+        <span className="sheet-kicker">Fiche · {releaseKicker(airDate, film.releaseDateFr)}</span>
         <h3 id="sheet-title">{film.title}</h3>
         {meta && <p className="sheet-meta">{meta}</p>}
         {film.cast.length > 0 && <p className="sheet-meta">Avec {film.cast.join(', ')}</p>}

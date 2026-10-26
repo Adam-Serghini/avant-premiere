@@ -16,7 +16,7 @@ function sheet(film: Partial<Film>, handlers: { onFilmChanged?(): void; onError?
     customPosterUrl: null, localTrailerUrl: null, directors: [], cast: [], genres: [], runtimeMin: null,
     synopsis: null, trailers: [], fetchedAt: null, editedFields: [], imdbId: null, ratings: null,
   } as Film;
-  const ef = { film: { ...base, ...film }, position: 0, period: 'past', opinion: '', anecdotes: '', extendedUniverse: '',
+  const ef = { film: { ...base, ...film }, position: 0, section: 'seen', opinion: '', anecdotes: '', extendedUniverse: '',
     score: null, trailerKey: null } as EmissionFilm;
   return render(<FilmSheet airDate="2026-10-13" ef={ef} onSaved={vi.fn()} onRemove={vi.fn()} onRefresh={vi.fn()}
     onFilmChanged={handlers.onFilmChanged ?? vi.fn()} onError={handlers.onError ?? vi.fn()} />);

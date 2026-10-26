@@ -24,7 +24,7 @@ export function OverlayPage() {
 
   return (
     <div className="overlay-stage" key={key}>
-      {state.mode === 'full' && <FullView ef={current} position={state.position} total={total} />}
+      {state.mode === 'full' && <FullView ef={current} airDate={state.airDate} position={state.position} total={total} />}
       {state.mode === 'trailer' && trailer && <TrailerView trailer={trailer} preview={preview} />}
     </div>
   );

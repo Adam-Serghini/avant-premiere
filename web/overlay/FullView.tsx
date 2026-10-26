@@ -6,12 +6,13 @@ import { formatRatings, formatRuntime, releaseKicker, yearOf } from '../format';
 
 interface Props {
   ef: EmissionFilm;
+  airDate: string | null;
   position: number;
   total: number;
 }
 
 /** La Fiche, pensée pour remplir le cadre de gauche de la scène React (référence 1250 × 725). */
-export function FullView({ ef, position, total }: Props) {
+export function FullView({ ef, airDate, position, total }: Props) {
   const { film } = ef;
   const meta = [film.genres.slice(0, 2).join(', '), yearOf(film.releaseDateFr), formatRuntime(film.runtimeMin)]
     .filter(Boolean)
@@ -25,7 +26,7 @@ export function FullView({ ef, position, total }: Props) {
         <Poster url={displayPoster(film)} title={film.title} />
       </div>
       <div className="ov-fiche-info">
-        <span className="ov-kicker">{releaseKicker(ef.period, film.releaseDateFr)}</span>
+        <span className="ov-kicker">{releaseKicker(airDate, film.releaseDateFr)}</span>
         <h1 className={`ov-title${film.title.length > 24 ? ' ov-title--long' : ''}`}>{film.title}</h1>
         <div className="ov-rule" />
         <dl className="ov-credits">

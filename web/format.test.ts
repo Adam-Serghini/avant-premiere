@@ -9,11 +9,11 @@ describe('formatage', () => {
     expect(formatAirDate('2026-10-13')).toBe('mardi 13 octobre');
   });
 
-  it('annonce la sortie selon la période', () => {
-    expect(releaseKicker('past', '2026-10-07')).toBe('Sorti le 7 octobre');
-    expect(releaseKicker('next', '2026-10-14')).toBe('Sort le 14 octobre');
-    expect(releaseKicker('past', null)).toBe('Déjà sorti');
-    expect(releaseKicker('next', null)).toBe('À venir');
+  it('annonce la sortie par rapport à l’émission', () => {
+    expect(releaseKicker('2026-10-27', '2026-10-22')).toBe('Sorti le 22 octobre');
+    expect(releaseKicker('2026-10-27', '2026-10-29')).toBe('Sort le 29 octobre');
+    expect(releaseKicker('2026-10-27', null)).toBe('');
+    expect(releaseKicker(null, '2026-10-22')).toBe('');
   });
 
   it('formate durée et année', () => {

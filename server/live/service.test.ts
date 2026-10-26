@@ -33,8 +33,8 @@ function setup() {
   const repo = createRepo(openDb(':memory:'));
   repo.upsertFilm(film('tmdb:1', true));
   repo.upsertFilm(film('tmdb:2', false));
-  repo.addFilm(DATE, 'tmdb:1', 'past');
-  repo.addFilm(DATE, 'tmdb:2', 'next');
+  repo.addFilm(DATE, 'tmdb:1', 'seen');
+  repo.addFilm(DATE, 'tmdb:2', 'releases');
   return { repo, live: createLiveService(repo) };
 }
 

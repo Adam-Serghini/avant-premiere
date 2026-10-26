@@ -1,3 +1,5 @@
+import type { Section } from './sections';
+
 export type Period = 'past' | 'next';
 export type DisplayMode = 'full' | 'trailer' | 'off';
 export type TmdbStatus = 'ok' | 'missing' | 'invalid' | 'unavailable';
@@ -89,7 +91,7 @@ export interface Releases {
 export interface EmissionFilm {
   film: Film;
   position: number;
-  period: Period;
+  section: Section;
   opinion: string;
   anecdotes: string;
   extendedUniverse: string;
@@ -104,6 +106,7 @@ export interface Emission {
 }
 
 export interface EmissionFilmPatch {
+  section?: Section;
   opinion?: string;
   anecdotes?: string;
   extendedUniverse?: string;

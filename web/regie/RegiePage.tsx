@@ -159,7 +159,7 @@ function LiveBoard({ snapshot, send, shortcuts, onEditShortcuts }: BoardProps) {
               <Poster url={displayPoster(current.film)} title={current.film.title} />
               <div className="on-air-info">
                 <span className="label kicker">
-                  Film {state.position + 1} sur {total} · {releaseKicker(current.period, current.film.releaseDateFr)}
+                  Film {state.position + 1} sur {total} · {releaseKicker(state.airDate, current.film.releaseDateFr)}
                 </span>
                 <h1>{current.film.title}</h1>
                 <p className="hint">

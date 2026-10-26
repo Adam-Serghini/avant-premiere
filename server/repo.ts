@@ -1,4 +1,5 @@
-import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Period, Ratings } from '../shared/types';
+import { sectionRank, type Section } from '../shared/sections';
+import type { DisplayMode, Emission, EmissionFilm, EmissionFilmPatch, Film, FilmOverrides, LiveState, Ratings } from '../shared/types';
 import { defaultTrailerKey, selectTrailers } from '../shared/trailer';
 import type { Db } from './db';
 import { applyOverrides, diffOverrides, parseOverrides } from './overrides';
@@ -25,7 +26,7 @@ export interface Repo {
   setFilmRatings(filmId: string, ratings: Ratings | null): void;
   getEmission(airDate: string): Emission;
   getEmissionById(id: number): Emission | null;
-  addFilm(airDate: string, filmId: string, period: Period): Emission;
+  addFilm(airDate: string, filmId: string, section: Section): Emission;
   removeFilm(airDate: string, filmId: string): Emission;
   updateFilm(airDate: string, filmId: string, patch: EmissionFilmPatch): Emission;
   reorder(airDate: string, filmIds: string[]): Emission;
@@ -60,7 +61,7 @@ interface EmissionFilmRow extends FilmRow {
   emission_id: number;
   film_id: string;
   position: number;
-  period: Period;
+  section: Section;
   opinion: string;
   anecdotes: string;
   extended_universe: string;
@@ -119,7 +120,7 @@ function emissionFilmFromRow(r: EmissionFilmRow): EmissionFilm {
   return {
     film: filmFromRow(r),
     position: r.position,
-    period: r.period,
+    section: r.section,
     opinion: r.opinion,
     anecdotes: r.anecdotes,
     extendedUniverse: r.extended_universe,
@@ -153,7 +154,7 @@ export function createRepo(db: Db): Repo {
     efRow: db.prepare('SELECT * FROM emission_films WHERE emission_id = ? AND film_id = ?'),
     countFilms: db.prepare('SELECT COUNT(*) AS n FROM emission_films WHERE emission_id = ?'),
     insertEf: db.prepare(
-      'INSERT INTO emission_films (emission_id, film_id, position, period, score, trailer_key) VALUES (?, ?, ?, ?, NULL, ?)',
+      'INSERT INTO emission_films (emission_id, film_id, position, section, score, trailer_key) VALUES (?, ?, ?, ?, NULL, ?)',
     ),
     deleteEf: db.prepare('DELETE FROM emission_films WHERE emission_id = ? AND film_id = ?'),
     updateEf: db.prepare(
@@ -161,6 +162,8 @@ export function createRepo(db: Db): Repo {
     ),
     setPosition: db.prepare('UPDATE emission_films SET position = ? WHERE emission_id = ? AND film_id = ?'),
     orderedIds: db.prepare('SELECT film_id FROM emission_films WHERE emission_id = ? ORDER BY position'),
+    orderedRows: db.prepare('SELECT film_id, section FROM emission_films WHERE emission_id = ? ORDER BY position'),
+    setSection: db.prepare('UPDATE emission_films SET section = ? WHERE emission_id = ? AND film_id = ?'),
     getLive: db.prepare(
       'SELECT ls.emission_id, ls.current_position, ls.mode, e.air_date FROM live_state ls LEFT JOIN emissions e ON e.id = ls.emission_id WHERE ls.id = 1',
     ),
@@ -191,13 +194,23 @@ export function createRepo(db: Db): Repo {
     filmIds.forEach((filmId, i) => q.setPosition.run(i, id, filmId));
   }
 
-  const addFilm = db.transaction((airDate: string, filmId: string, period: Period): Emission => {
+  /** Place le film en fin de sa partie, puis renumérote tout le conducteur. */
+  function placeAtEndOfSection(id: number, filmId: string, section: Section): void {
+    const rows = (q.orderedRows.all(id) as { film_id: string; section: Section }[]).filter((r) => r.film_id !== filmId);
+    const rank = sectionRank(section);
+    let at = rows.length;
+    while (at > 0 && sectionRank(rows[at - 1]!.section) > rank) at--;
+    renumber(id, [...rows.slice(0, at).map((r) => r.film_id), filmId, ...rows.slice(at).map((r) => r.film_id)]);
+  }
+
+  const addFilm = db.transaction((airDate: string, filmId: string, section: Section): Emission => {
     const id = emissionId(airDate);
     if (!q.efRow.get(id, filmId)) {
       const row = q.getFilm.get(filmId) as FilmRow | undefined;
       if (!row) throw new RepoError('not_found', 'Film inconnu.');
       const { n } = q.countFilms.get(id) as { n: number };
-      q.insertEf.run(id, filmId, n, period, defaultTrailerKey(filmFromRow(row).trailers));
+      q.insertEf.run(id, filmId, n, section, defaultTrailerKey(filmFromRow(row).trailers));
+      placeAtEndOfSection(id, filmId, section);
     }
     return load(id)!;
   });
@@ -222,6 +235,10 @@ export function createRepo(db: Db): Repo {
     const extendedUniverse = patch.extendedUniverse ?? row.extended_universe;
     const trailerKey = patch.trailerKey === undefined ? row.trailer_key : patch.trailerKey;
     q.updateEf.run(opinion, anecdotes, extendedUniverse, score, trailerKey, id, filmId);
+    if (patch.section !== undefined && patch.section !== row.section) {
+      q.setSection.run(patch.section, id, filmId);
+      placeAtEndOfSection(id, filmId, patch.section);
+    }
     return load(id)!;
   });
 
@@ -233,6 +250,11 @@ export function createRepo(db: Db): Repo {
       new Set(filmIds).size === filmIds.length &&
       filmIds.every((f) => current.has(f));
     if (!valid) throw new RepoError('invalid', 'Le nouvel ordre doit contenir exactement les films retenus.');
+    const sections = new Map((q.orderedRows.all(id) as { film_id: string; section: Section }[]).map((r) => [r.film_id, r.section]));
+    const ranks = filmIds.map((f) => sectionRank(sections.get(f)!));
+    if (ranks.some((r, i) => i > 0 && r < ranks[i - 1]!)) {
+      throw new RepoError('invalid', 'Un film ne change de partie que par le choix de la partie.');
+    }
     renumber(id, filmIds);
     return load(id)!;
   });
@@ -282,7 +304,7 @@ export function createRepo(db: Db): Repo {
     },
     getEmission: (airDate) => load(emissionId(airDate))!,
     getEmissionById: (id) => load(id),
-    addFilm: (airDate, filmId, period) => addFilm(airDate, filmId, period),
+    addFilm: (airDate, filmId, section) => addFilm(airDate, filmId, section),
     removeFilm: (airDate, filmId) => removeFilm(airDate, filmId),
     updateFilm: (airDate, filmId, patch) => updateFilm(airDate, filmId, patch),
     reorder: (airDate, filmIds) => reorder(airDate, filmIds),
