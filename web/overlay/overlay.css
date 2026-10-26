@@ -45,3 +45,15 @@
 .trailer { position: absolute; inset: 0; background: #000; }
 .trailer iframe { width: 100%; height: 100%; border: 0; }
 .trailer video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+.trailer-host { position: absolute; inset: 0; }
+.trailer-pause {
+  position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 5vw;
+  padding: 4.4vw 5vw; background: var(--bg);
+}
+.trailer-pause-poster { height: 100%; max-height: calc(100vh - 8.8vw); aspect-ratio: 2 / 3; padding: 0.6vw; border: 0.16vw solid var(--gold); }
+.trailer-pause-poster .poster { width: 100%; height: 100%; aspect-ratio: auto; }
+.trailer-pause-poster .poster-title { font-size: 3.4vw; }
+.trailer-pause-label {
+  font-family: var(--font-display); font-weight: 600; font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: 9vw; line-height: 1; color: var(--gold);
+}

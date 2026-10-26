@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { displayPoster } from '../../shared/film';
 import { effectiveTrailer } from '../../shared/trailer';
 import { useLiveSnapshot } from '../live/useLiveSnapshot';
 import { sectionCounter } from '../../shared/sections';
@@ -27,7 +28,8 @@ export function OverlayPage() {
     <div className="overlay-stage" key={key}>
       {state.mode === 'full' && <FullView ef={current} airDate={state.airDate} position={state.position} total={total}
           part={sectionCounter(snapshot.rundown, state.position)} />}
-      {state.mode === 'trailer' && trailer && <TrailerView trailer={trailer} preview={preview} />}
+      {state.mode === 'trailer' && trailer && <TrailerView trailer={trailer} preview={preview} player={snapshot.player}
+          poster={{ url: displayPoster(current.film), title: current.film.title }} />}
     </div>
   );
 }
